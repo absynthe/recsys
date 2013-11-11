@@ -44,7 +44,7 @@ def load_movielens_r100k(load_timestamp=False):
     data_ratings = np.loadtxt(base_dir + 'u.data', delimiter='\t', usecols=(0, 1, 2), dtype=int)
     if load_timestamp:
         #TODO think if you want to do anything with timestamps
-        return
+        return None
     else:
         ratings_matrix = sparse.lil_matrix((no_users,no_items), dtype=np.float32)
         for user_id, item_id, rating in data_ratings:
