@@ -3,7 +3,7 @@ import scipy as sp
 import numpy as np
 import scipy.sparse as sparse
 import time
-from recsys.data.base import load_movielens_r100k
+from recsys.data.base import load_movielens_r100k, generate
 from recsys.recommenders.SVDSGDRecommender import SVDSGDRecommender
 
 ratings_matrix_cache = None
@@ -17,14 +17,22 @@ PATH = '/Users/ana/Documents/Netflix Whole Dataset/training_set/mv_'
 
 if __name__ == "__main__":
     start_time = time.time()
-    data = load_movielens_r100k()
+    data = generate()
     print "Model building took " + str(time.time() - start_time), "seconds"
     start_time = time.time()
     rec = SVDSGDRecommender(data)
-    print "Factorization took " + str(time.time() - start_time), "seconds"
-    start_time = time.time()
-    print rec.predict(1, 17)
-    print "Prediction took"  + str(time.time() - start_time), "seconds"
+    print "Non-optimized Factorization took " + str(time.time() - start_time), "seconds"
+    print np.dot(rec.p,rec.q.T)#+rec.average_rating
+    print rec.p
+    print rec.q
+    #start_time = time.time()
+    #print rec.opt_factorize()
+    #print "Optimized factorization took " + str(time.time() - start_time), "seconds"
+    #print rec.p
+    #print rec.q
+    #start_time = time.time()
+    #print rec.predict(1, 17)
+    #print "Prediction took"  + str(time.time() - start_time), "seconds"
 #    while True:
 #        if ratings_matrix_cache is None or user_id_cache is None:
 #            start_time = time.time()
