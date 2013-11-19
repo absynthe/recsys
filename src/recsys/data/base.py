@@ -9,6 +9,7 @@ from os.path import join
 import numpy as np
 import scipy.sparse as sparse
 import time
+from recsys.recommenders.SVDSGDRecommender import SVDSGDRecommender
 
 def generate():
     print "Building user ratings matrix"
@@ -23,7 +24,7 @@ def generate():
     R = sparse.lil_matrix(R)
     return R.tocsr()
 
-def load_movielens_r100k(load_timestamp=False):
+def load_movielens_ratings100k(load_timestamp=False):
     """ Load and return a sparse matrix of the 100k ratings MovieLens dataset
         (only the user ids, item ids and ratings).
         Optional:  timestamps
@@ -41,7 +42,7 @@ def load_movielens_r100k(load_timestamp=False):
                       'formats': ('i4', 'S1')})
     no_users = data_info[0][0]
     no_items = data_info[1][0]
-    data_ratings = np.loadtxt(base_dir + 'u.data', delimiter='\t', usecols=(0, 1, 2), dtype=int)
+    data_ratings = np.loadtxt(base_dir + 'u1.base', delimiter='\t', usecols=(0, 1, 2), dtype=int)
     if load_timestamp:
         #TODO think if you want to do anything with timestamps
         return None
@@ -51,7 +52,21 @@ def load_movielens_r100k(load_timestamp=False):
             ratings_matrix[user_id-1, item_id-1] = np.float32(rating)
         return ratings_matrix.tocsr()
 
-def load_movielens_t100k():
+def eval_movielens_test100k(rec, load_timestamp=False):
+    base_dir = join(dirname(__file__), 'raw/ml-100k/')
+    test_ratings = np.loadtxt(base_dir + 'u1.test', delimiter='\t', usecols=(0, 1, 2), dtype=int)
+    total = 0
+    n = 0
+    for user_id, item_id, rating in data_ratings:
+        estimate = rec.predict(user_id,item_id)
+        total += (rating-estimate) **2
+        n+=1
+        print rating, estimate
+    print total/n
+
+
+
+def load_movielens_titles100k():
     """ Load and return a dictionary of the movie titles in the
         100k ratings MovieLens dataset
 
