@@ -9,6 +9,7 @@ from os.path import join
 import numpy as np
 import scipy.sparse as sparse
 import time
+import math
 from recsys.recommenders.SVDSGDRecommender import SVDSGDRecommender
 
 def generate():
@@ -47,9 +48,9 @@ def load_movielens_ratings100k(load_timestamp=False):
         #TODO think if you want to do anything with timestamps
         return None
     else:
-        ratings_matrix = sparse.lil_matrix((no_users,no_items), dtype=np.float32)
+        ratings_matrix = sparse.lil_matrix((no_users,no_items), dtype=np.float64)
         for user_id, item_id, rating in data_ratings:
-            ratings_matrix[user_id-1, item_id-1] = np.float32(rating)
+            ratings_matrix[user_id-1, item_id-1] = np.float64(rating)
         return ratings_matrix.tocsr()
 
 def eval_movielens_test100k(rec, load_timestamp=False):
@@ -57,12 +58,12 @@ def eval_movielens_test100k(rec, load_timestamp=False):
     test_ratings = np.loadtxt(base_dir + 'u1.test', delimiter='\t', usecols=(0, 1, 2), dtype=int)
     total = 0
     n = 0
-    for user_id, item_id, rating in data_ratings:
+    for user_id, item_id, rating in test_ratings:
         estimate = rec.predict(user_id,item_id)
         total += (rating-estimate) **2
         n+=1
         print rating, estimate
-    print total/n
+    print "Rmse is: " + str(math.sqrt(total/n))
 
 
 
@@ -100,7 +101,7 @@ def load_netflix_r(load_timestamp=False):
     no_users = 2649429#480189
     id_count = 0
 
-    ratings_matrix = sparse.lil_matrix((no_users,no_items), dtype=np.float32)
+    ratings_matrix = sparse.lil_matrix((no_users,no_items), dtype=np.float64)
     user_id_to_id = {}
     for item_id in range(1,no_items+1):
         f = open(base_dir+str(item_id).zfill(7)+".txt", 'r')

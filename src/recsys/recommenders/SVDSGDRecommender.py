@@ -2,15 +2,17 @@ import numpy as np
 import scipy.sparse as sparse
 import sys
 import time
+from test import factorize
 from recsys.base import BaseRecommender
 
 class SVDSGDRecommender(BaseRecommender):
-    def __init__(self,model,lr, reg, f, iter, with_preference=False):
-        BaseRecommender.__init__(self, model, with_preference)
+    def __init__(self,data, iterations=5000, factors=2, lr=0.001, reg= 0.02, with_preference=False):
+        BaseRecommender.__init__(self, data, with_preference)
         self.p=None
         self.q=None
-        self.average_rating = self.model.mean()
-        self.factorize(K = f, steps = iter, regularization = reg, learning_rate=lr)
+        self.average_rating = self.data.mean()
+        #self.factorize(K = factors, steps = iterations, regularization = reg, learning_rate=lr)
+        self.p, self.q = factorize(self.data, factors, iterations, lr, reg)
 
     def factorize(self, K,steps=5000, learning_rate =0.001, regularization = 0.02, biased = False):
         #one default : 5000 steps and learning rate 0.0002
@@ -35,45 +37,41 @@ class SVDSGDRecommender(BaseRecommender):
         print "Computing factorizations..."
 
         #initialize factor matrices with random values
-        N = self.model.shape[0] #no of users
-        M = self.model.shape[1] #no of items
+        N = self.data.shape[0] #no of users
+        M = self.data.shape[1] #no of items
         #self.p = np.random.rand(N, K)
         #self.q = np.random.rand(M, K)
+
         self.p=np.empty([N,K])
         self.q=np.empty([M,K])
         self.p.fill(0.1)
         self.q.fill(0.1)
+        self.q= self.q.T
 
-        rows,cols = self.model.nonzero()
+        rowcols = np.array(self.data.nonzero())
+        average_time = 0.0
         for step in xrange(steps):
             #SOMEWHAT OPTIMAL
             start_time = time.time()
-            for u, i in zip(rows,cols):
-                e=self.model-np.dot(self.p,self.q.T) #calculate error for gradient
-                if biased:
-                     e -= self.average_rating
-                p_temp = learning_rate * ( e[u,i] * self.q[i,:] - regularization * self.p[u,:])
-                #self.q[i,:]+= learning_rate * (e[u,i] * self.p[u,:] - regularization * self.q[i,:])
-                self.q[i,:]*=(1-learning_rate * regularization)
-                self.q[i,:]+= learning_rate * e[u,i] * self.p[u,:]
+            for u, i in rowcols.T:
+                e= learning_rate * (self.data[u,i]-np.dot(self.p[u,:],self.q[:,i])) #calculate error for gradient
+                #if biased:
+                #     e -= self.average_rating
+                p_temp = e * self.q[:,i] - learning_rate * regularization * self.p[u,:]
+                #self.q[:,i]+= learning_rate * (e * self.p[u,:] - regularization * self.q[:,i])
+                self.q[:,i]*=(1-learning_rate * regularization)
+                self.q[:,i]+= e * self.p[u,:]
                 self.p[u,:] += p_temp
-            sys.stdout.flush()
-            print "One step took " + str(time.time() - start_time), "seconds"
-                #MOST UNOPTIMAL
-
-#                for k in range(0,K):
-#                    #adjust P and Q based on error gradient
-#                    e=self.model-np.dot(self.p,self.q.T)
-#                    temp =self.p[u,k] + learning_rate * ( e[u,i] * self.q[i,k] - regularization * self.p[u,k])
-#                    self.q[i,k]+= learning_rate * (e[u,i] * self.p[u,k] - regularization * self.q[i,k])
-#                    self.p[u,k]= temp
+            average_time +=time.time() - start_time
+        sys.stdout.flush()
+        print "One step took on average" + str(average_time/steps), "seconds"
 
 
     def recommend(self,user_id, how_many):
         return
 
     def predict(self, user_id, item_id):
-        return np.dot(self.p[user_id-1,:],self.q[item_id-1,:].T)
+        return np.dot(self.p[user_id-1,:],self.q[:,item_id-1])
 
     def mf_sgd(self,K=2,steps=5000, learning_rate =0.0002, regularization = 0.02): #0.02
         """
@@ -94,7 +92,7 @@ class SVDSGDRecommender(BaseRecommender):
         @return: the user and item factor vectors
         """
         print "Computing factorizations..."
-        R = self.model
+        R = self.data
         N = R.shape[0] #no of users
         M = R.shape[1] #no of items
 

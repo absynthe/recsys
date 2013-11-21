@@ -21,8 +21,8 @@ class BaseRecommender():
 
     """
 
-    def __init__(self, model, with_preference=False):
-        self.model = model
+    def __init__(self, data, with_preference=False):
+        self.data = data
         self.with_preference = with_preference
 
     def recommend(self, user_id, how_many):
