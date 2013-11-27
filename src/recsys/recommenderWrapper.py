@@ -21,9 +21,10 @@ if __name__ == "__main__":
     print "Model building took " + str(time.time() - start_time), "seconds"
     start_time = time.time()
     #data, iterations=5000, factors=2, lr=0.001, reg= 0.02, with_preference=False
-    rec = SVDSGDRecommender(data, 300, 2, 0.001, 0.02, False)
+    rec = SVDSGDRecommender(data, 10, 200, 0.001, 0.02, False)
     print "Factorization took " + str(time.time() - start_time), "seconds"
-    start_time = time.time()
     print np.dot(rec.p,rec.q)
-    eval_movielens_test100k(rec)
-    print "Evaluation took " + str(time.time() - start_time), "seconds"
+    #start_time = time.time()
+    #print np.dot(rec.p,rec.q)
+    #eval_movielens_test100k(rec)
+    #print "Evaluation took " + str(time.time() - start_time), "seconds"
