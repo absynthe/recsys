@@ -21,14 +21,13 @@ class BaseRecommender:
           estimated preferences. (default= False)
 
     """
-    self.p=None
-    self.q=None
-    self.data = None
-    self.no_users = self.data.shape[0]
-    self.no_items =self.data.shape[1]
 
     def __init__(self, data):
         self.data = data
+        self.p=None
+        self.q=None
+        self.no_users = self.data.shape[0]
+        self.no_items =self.data.shape[1]
 
     def recommend(self, user_id, how_many):
         '''

@@ -2,7 +2,7 @@ import numpy as np
 import scipy.sparse as sparse
 import sys
 import time
-#from test import cython_factorize_plain, cython_factorize_optimized
+from test import cython_factorize_plain, cython_factorize_optimized
 from recsys.base import BaseRecommender
 
 class SVDSGDRecommender(BaseRecommender):
@@ -37,8 +37,8 @@ class SVDSGDRecommender(BaseRecommender):
         """
         BaseRecommender.__init__(self, data)
         self.with_feedback = with_feedback
-        self.biased = biased
-        if (self.biased):
+        self.with_bias= with_bias
+        if (self.with_bias):
             self.global_average = self.data.mean()
             self.user_bias = np.zeros(self.no_users)
             self.item_bias = np.zeros(self.no_items)
@@ -47,13 +47,13 @@ class SVDSGDRecommender(BaseRecommender):
             #self.feedback_data[self.feedback_data.nonzero()]=1
             #self.feedback_data.tocsr()
             self.y = None
-        #self.factorize_optimized(K = factors, steps = iterations, regularization = reg, learning_rate=lr)
-        #self.factorize_plain(K = factors, steps = iterations, regularization = reg, learning_rate=lr)
+        #self.factorize_optimized(iterations, factors, learning_rate, regularization, self.with_bias, bias_learning_rate, bias_regularization, self.with_feedback)
+        self.factorize_plain(iterations, factors, learning_rate, regularization)
         #self.p, self.q = cython_factorize_plain(self.data, factors, iterations, lr, reg)
-        #self.p, self.q = cython_factorize_optimized(self.data, factors, iterations, lr, reg)
+        #self.p, self.q = cython_factorize_optimized(self.data, factors, iterations, learning_rate, regularization)
 
     def factorize_optimized(self,
-                            steps=5000, K,
+                            steps=5000, K = 2,
                             learning_rate =0.001, regularization = 0.02,
                             biased = False, bias_learning_rate = 0.001, bias_regularization=0.02,
                             feedback = False):
@@ -62,7 +62,7 @@ class SVDSGDRecommender(BaseRecommender):
         using the Stochastic Gradient Descent method. With bias and feedback, represents SVD ++.
         Optimized version.
         """
-        print "Computing factorizations for " + K + "factors"
+        print "Computing factorizations for " + str(K) + "factors"
 
         #initialize factor matrices with random values or fixed values
         #self.p = np.random.rand(N, K)
@@ -92,16 +92,16 @@ class SVDSGDRecommender(BaseRecommender):
                     #add to p
                     py_sum += self.p[u,:]
                     #calculate error for gradient
-                    e = (self.data[u,i]-np.dot(py_sum,self.q[:,i].T))
+                    e = (self.data[u,i]-np.dot(py_sum,self.q.T[:,i]))
                 else:
                     #directly calculate error for gradient
-                    e= (self.data[u,i]-np.dot(self.p[u,:],self.q[:,i].T))
+                    e= (self.data[u,i]-np.dot(self.p[u,:],self.q.T[:,i]))
                 #take bias into account
-                if self.biased:
+                if self.with_bias:
                      e -= ( self.global_average + self.user_bias[u] + self.item_bias[i] )
                      item_bias[i] += bias_learning_rate * (e - bias_regularization * item_bias[i])
                      user_bias[u] += bias_learning_rate * (e - bias_regularization * user_bias[u])
-                p_temp = learning_rate * (e * self.q[:,i] - regularization * self.p[u,:])
+                p_temp = learning_rate * (e * self.q[i,:] - regularization * self.p[u,:])
                 #adjust p, q and y factors
                 if self.with_feedback:
                     #adjust y first
@@ -119,6 +119,7 @@ class SVDSGDRecommender(BaseRecommender):
             average_time +=time.time() - start_time
         sys.stdout.flush()
         print "One optimized step took on average" + str(average_time/steps), "seconds"
+        self.q = self.q.T
 
 
     def recommend(self,user_id, how_many):
@@ -128,7 +129,7 @@ class SVDSGDRecommender(BaseRecommender):
         return np.dot(self.p[user_id-1,:],self.q[:,item_id-1])
 
     def factorize_plain(self,
-                        steps=5000, K,
+                        steps=5000, K = 2,
                         learning_rate =0.001, regularization = 0.02):
         """
         Factorizes the input matrix so as to minimize the regularized squared error,
@@ -145,7 +146,7 @@ class SVDSGDRecommender(BaseRecommender):
         @type regularization - float
         @param regularization - regularization constant;
         """
-        print "Computing factorizations for " + K + "factors"
+        print "Computing factorizations for " + str(K) + "factors"
 
 
         #self.p = np.random.rand(N, K)
