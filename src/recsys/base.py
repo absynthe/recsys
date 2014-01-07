@@ -4,9 +4,10 @@ Base Recommender Model.
 
 # Author: Anamaria Todor <anamaria@gameanalytics.com>
 
+import scipy.sparse as sparse
+import numpy as np
 
-
-class BaseRecommender():
+class BaseRecommender:
     """
     Abstract Base Class for Recommenders that suggest items for users.
 
@@ -20,10 +21,14 @@ class BaseRecommender():
           estimated preferences. (default= False)
 
     """
+    self.p=None
+    self.q=None
+    self.data = None
+    self.no_users = self.data.shape[0]
+    self.no_items =self.data.shape[1]
 
-    def __init__(self, data, with_preference=False):
+    def __init__(self, data):
         self.data = data
-        self.with_preference = with_preference
 
     def recommend(self, user_id, how_many):
         '''

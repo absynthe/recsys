@@ -22,7 +22,7 @@ def generate():
      [0,1,5,4],
     ]
 
-    R = sparse.lil_matrix(R)
+    R = sparse.lil_matrix(R,dtype=np.float64)
     return R.tocsr()
 
 def load_movielens_ratings100k(load_timestamp=False):

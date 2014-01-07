@@ -17,11 +17,14 @@ PATH = '/Users/ana/Documents/Netflix Whole Dataset/training_set/mv_'
 
 if __name__ == "__main__":
     start_time = time.time()
-    data = load_movielens_ratings100k()
-    print "Model building took " + str(time.time() - start_time), "seconds"
+    #data = load_movielens_ratings100k()
+    data = generate()
+    print "Data building took " + str(time.time() - start_time), "seconds"
     start_time = time.time()
     #data, iterations=5000, factors=2, lr=0.001, reg= 0.02, with_preference=False
-    rec = SVDSGDRecommender(data, 10, 200, 0.001, 0.02, False)
+    rec = SVDSGDRecommender(data, 10, 200, 0.001, 0.02, False, 0.001, 0.02, True)
+    print rec.data
+    print rec.feedback_data
     print "Factorization took " + str(time.time() - start_time), "seconds"
     print np.dot(rec.p,rec.q)
     #start_time = time.time()
