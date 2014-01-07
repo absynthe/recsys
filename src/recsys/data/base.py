@@ -25,7 +25,7 @@ def generate():
     R = sparse.lil_matrix(R,dtype=np.float64)
     return R.tocsr()
 
-def load_movielens_ratings100k(load_timestamp=False):
+def load_movielens_ratings100k(id, load_timestamp=False):
     """ Load and return a sparse matrix of the 100k ratings MovieLens dataset
         (only the user ids, item ids and ratings).
         Optional:  timestamps
@@ -43,7 +43,7 @@ def load_movielens_ratings100k(load_timestamp=False):
                       'formats': ('i4', 'S1')})
     no_users = data_info[0][0]
     no_items = data_info[1][0]
-    data_ratings = np.loadtxt(base_dir + 'u1.base', delimiter='\t', usecols=(0, 1, 2), dtype=int)
+    data_ratings = np.loadtxt(base_dir + 'u' + str(id)+ '.base', delimiter='\t', usecols=(0, 1, 2), dtype=int)
     if load_timestamp:
         #TODO think if you want to do anything with timestamps
         return None
@@ -53,23 +53,30 @@ def load_movielens_ratings100k(load_timestamp=False):
             ratings_matrix[user_id-1, item_id-1] = np.float64(rating)
         return ratings_matrix.tocsr()
 
-def eval_movielens_test100k(rec, load_timestamp=False):
+def eval_movielens_test100k(rec, id, load_timestamp=False):
     base_dir = join(dirname(__file__), 'raw/ml-100k/')
-    test_ratings = np.loadtxt(base_dir + 'u1.test', delimiter='\t', usecols=(0, 1, 2), dtype=int)
+    test_ratings = np.loadtxt(base_dir + 'u' + str(id) + '.test', delimiter='\t', usecols=(0, 1, 2), dtype=int)
     total = 0
     n = 0
     for user_id, item_id, rating in test_ratings:
         estimate = rec.predict(user_id,item_id)
         total += (rating-estimate) **2
         n+=1
-        print rating, estimate
-    print "Rmse is: " + str(math.sqrt(total/n))
+    rmse = math.sqrt(total/n)
+    print "Rmse for fold " + str(id) + "is: " + str(rmse)
+    return rmse
 
-
-
-
-
-
+def cross_validate_movielens_test100k_iterations(iterations_start, iterations_step, iterations_finish):
+    rmse_list = []
+    for i in range(iterations_start, iterations_finish, iterations_step):
+        print "Computing for " + str(i) + " steps"
+        average_rmse = 0
+        for j in range(5):
+            data = load_movielens_ratings100k(j+1, False)
+            rec = SVDSGDRecommender(data, i, 2, 0.001, 0, False, 0.001, 0.02, False)
+            average_rmse += eval_movielens_test100k(rec,j+1,False)
+        rmse_list.append(average_rmse/5.0)
+    print rmse_list
 
 def load_movielens_titles100k():
     """ Load and return a dictionary of the movie titles in the

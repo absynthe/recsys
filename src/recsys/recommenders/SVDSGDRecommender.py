@@ -48,9 +48,15 @@ class SVDSGDRecommender(BaseRecommender):
             #self.feedback_data.tocsr()
             self.y = None
         #self.factorize_optimized(iterations, factors, learning_rate, regularization, self.with_bias, bias_learning_rate, bias_regularization, self.with_feedback)
-        self.factorize_plain(iterations, factors, learning_rate, regularization)
+        #self.factorize_plain(iterations, factors, learning_rate, regularization)
         #self.p, self.q = cython_factorize_plain(self.data, factors, iterations, lr, reg)
-        #self.p, self.q = cython_factorize_optimized(self.data, factors, iterations, learning_rate, regularization)
+        self.p, self.q = cython_factorize_optimized(self.data, factors, iterations, learning_rate, regularization)
+
+    def recommend(self,user_id, how_many):
+        return
+
+    def predict(self, user_id, item_id):
+        return np.dot(self.p[user_id-1,:],self.q[:,item_id-1])
 
     def factorize_optimized(self,
                             steps=5000, K = 2,
@@ -120,13 +126,6 @@ class SVDSGDRecommender(BaseRecommender):
         sys.stdout.flush()
         print "One optimized step took on average" + str(average_time/steps), "seconds"
         self.q = self.q.T
-
-
-    def recommend(self,user_id, how_many):
-        return
-
-    def predict(self, user_id, item_id):
-        return np.dot(self.p[user_id-1,:],self.q[:,item_id-1])
 
     def factorize_plain(self,
                         steps=5000, K = 2,
