@@ -3,7 +3,7 @@ import scipy as sp
 import numpy as np
 import scipy.sparse as sparse
 import time
-from recsys.data.base import load_movielens_ratings100k, generate,eval_movielens_test100k, cross_validate_movielens_test100k_iterations
+from recsys.data.base import load_movielens_ratings100k, generate,eval_movielens_test100k, cross_validate_movielens_test100k_iterations, cross_validate_movielens_test100k_factors
 from recsys.recommenders.SVDSGDRecommender import SVDSGDRecommender
 
 ratings_matrix_cache = None
@@ -16,7 +16,8 @@ USERS = 480189
 PATH = '/Users/ana/Documents/Netflix Whole Dataset/training_set/mv_'
 
 if __name__ == "__main__":
-    cross_validate_movielens_test100k_iterations(25, 25, 1000)
+    #cross_validate_movielens_test100k_iterations(25, 25, 1000)
+    cross_validate_movielens_test100k_factors()
     #start_time = time.time()
     #data = load_movielens_ratings100k()
     #data = generate()

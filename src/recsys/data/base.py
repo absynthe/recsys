@@ -78,6 +78,18 @@ def cross_validate_movielens_test100k_iterations(iterations_start, iterations_st
         rmse_list.append(average_rmse/5.0)
     print rmse_list
 
+def cross_validate_movielens_test100k_factors():
+    factor_list = [50,100,200]
+    rmse_list = []
+    for factor in factor_list:
+        average_rmse = 0
+        for j in range(5):
+            data = load_movielens_ratings100k(j+1, False)
+            rec = SVDSGDRecommender(data, 300, factor, 0.001, 0, False, 0.001, 0.02, False)
+            average_rmse += eval_movielens_test100k(rec,j+1,False)
+        rmse_list.append(average_rmse / 5.0)
+    print rmse_list
+
 def load_movielens_titles100k():
     """ Load and return a dictionary of the movie titles in the
         100k ratings MovieLens dataset
