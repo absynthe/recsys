@@ -2,7 +2,7 @@ import numpy as np
 import scipy.sparse as sparse
 import sys
 import time
-from test import cython_factorize_plain, cython_factorize_optimized
+from test import cython_factorize_plain, cython_factorize_optimized, cython_factorize_optimized_biased
 from recsys.base import BaseRecommender
 
 class SVDSGDRecommender(BaseRecommender):
@@ -38,11 +38,15 @@ class SVDSGDRecommender(BaseRecommender):
         BaseRecommender.__init__(self, data)
         self.with_feedback = with_feedback
         self.with_bias= with_bias
-        if (self.with_bias):
+        if self.with_bias:
             self.global_average = self.data.mean()
             self.user_bias = np.zeros(self.no_users)
             self.item_bias = np.zeros(self.no_items)
-        if (self.with_feedback):
+            self.p, self.q, self.user_bias, self.item_bias = cython_factorize_optimized_biased(self.data, self.global_average,
+                                                               factors, iterations, learning_rate, regularization,
+                                                               bias_learning_rate, bias_regularization)
+            #self.factorize_optimized(iterations, factors, learning_rate, regularization, bias_learning_rate, bias_regularization)
+        elif self.with_feedback:
             #self.feedback_data =  sparse.lil_matrix(self.data, dtype=np.float64)
             #self.feedback_data[self.feedback_data.nonzero()]=1
             #self.feedback_data.tocsr()
@@ -50,19 +54,24 @@ class SVDSGDRecommender(BaseRecommender):
         #self.factorize_optimized(iterations, factors, learning_rate, regularization, self.with_bias, bias_learning_rate, bias_regularization, self.with_feedback)
         #self.factorize_plain(iterations, factors, learning_rate, regularization)
         #self.p, self.q = cython_factorize_plain(self.data, factors, iterations, lr, reg)
-        self.p, self.q = cython_factorize_optimized(self.data, factors, iterations, learning_rate, regularization)
+        else:
+            self.p, self.q = cython_factorize_optimized(self.data, factors, iterations,
+                                                        learning_rate, regularization)
 
     def recommend(self,user_id, how_many):
         return
 
     def predict(self, user_id, item_id):
+        if self.with_bias:
+            return np.dot(self.p[user_id-1,:],self.q[:,item_id-1]) + self.global_average + self.item_bias[item_id-1] + self.user_bias[user_id-1]
+        elif self.with_feedback:
+            return 0
         return np.dot(self.p[user_id-1,:],self.q[:,item_id-1])
 
     def factorize_optimized(self,
                             steps=5000, K = 2,
                             learning_rate =0.001, regularization = 0.02,
-                            biased = False, bias_learning_rate = 0.001, bias_regularization=0.02,
-                            feedback = False):
+                            bias_learning_rate = 0.001, bias_regularization=0.02):
         """
         Factorizes the input matrix so as to minimize the regularized squared error,
         using the Stochastic Gradient Descent method. With bias and feedback, represents SVD ++.
@@ -104,9 +113,10 @@ class SVDSGDRecommender(BaseRecommender):
                     e= (self.data[u,i]-np.dot(self.p[u,:],self.q.T[:,i]))
                 #take bias into account
                 if self.with_bias:
+                     print "I R in"
                      e -= ( self.global_average + self.user_bias[u] + self.item_bias[i] )
-                     item_bias[i] += bias_learning_rate * (e - bias_regularization * item_bias[i])
-                     user_bias[u] += bias_learning_rate * (e - bias_regularization * user_bias[u])
+                     self.item_bias[i] += bias_learning_rate * (e - bias_regularization * self.item_bias[i])
+                     self.user_bias[u] += bias_learning_rate * (e - bias_regularization * self.user_bias[u])
                 p_temp = learning_rate * (e * self.q[i,:] - regularization * self.p[u,:])
                 #adjust p, q and y factors
                 if self.with_feedback:

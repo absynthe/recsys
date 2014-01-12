@@ -59,7 +59,8 @@ def eval_movielens_test100k(rec, id, load_timestamp=False):
     total = 0
     n = 0
     for user_id, item_id, rating in test_ratings:
-        estimate = rec.predict(user_id,item_id)
+        estimate = np.clip(rec.predict(user_id,item_id), 0.0, 5.0)
+        #print estimate
         total += (rating-estimate) **2
         n+=1
     rmse = math.sqrt(total/n)
@@ -85,7 +86,19 @@ def cross_validate_movielens_test100k_factors():
         average_rmse = 0
         for j in range(5):
             data = load_movielens_ratings100k(j+1, False)
-            rec = SVDSGDRecommender(data, 300, factor, 0.001, 0, False, 0.001, 0.02, False)
+            rec = SVDSGDRecommender(data, 300, factor, 0.001, 0.001, True, 0.005, 0.002, False)
+            average_rmse += eval_movielens_test100k(rec,j+1,False)
+        rmse_list.append(average_rmse / 5.0)
+    print rmse_list
+
+def cross_validate_movielens_test100k_reg():
+    regularization_list = [0.1,0.2,0.01,0.02,0.03, 0.04,0.001]
+    rmse_list = []
+    for reg in regularization_list:
+        average_rmse = 0
+        for j in range(5):
+            data = load_movielens_ratings100k(j+1, False)
+            rec = SVDSGDRecommender(data, 300, 50, 0.001, reg, False, 0.001, 0.02, False)
             average_rmse += eval_movielens_test100k(rec,j+1,False)
         rmse_list.append(average_rmse / 5.0)
     print rmse_list
