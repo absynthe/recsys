@@ -84,7 +84,7 @@ def cython_factorize_optimized(data, int K,int steps=5000, np.float64_t learning
             e=learning_rate * (values[x]-estimated_rating) 
             for j in xrange(K):
                 p_temp = ( e * q[j,i] - learning_rate * regularization * p[u,j])
-                q[j,i]*=(1-learning_rate * regularization)
+                q[j,i]*=(1.0-learning_rate * regularization)
                 q[j,i]+= e * p[u,j]
                 p[u,j] += p_temp
         average_time +=time.time() - start_time
@@ -140,9 +140,19 @@ def cython_factorize_optimized_biased(data, np.float64_t global_average,
             user_bias[u] += bias_learning_rate * (e - bias_regularization * user_bias[u])
             for j in xrange(K):
                 p_temp = learning_rate * ( e * q[j,i] - regularization * p[u,j])
-                q[j,i]*=(1-learning_rate * regularization)
+                q[j,i]*=(1.0-learning_rate * regularization)
                 q[j,i]+= e * learning_rate * p[u,j]
                 p[u,j] += p_temp
         average_time +=time.time() - start_time
     print "One step took on average" + str(average_time/steps), "seconds"
     return p,q,user_bias,item_bias
+    
+def clamped_predict(np.ndarray[DTYPE_t,ndim=1] p_row,np.ndarray[DTYPE_t,ndim=1] q_row,np.float64_t min_val,np.float64_t max_val):
+    #as recommended by Funk
+    cdef np.float64_t estimated_rating = 0.0 
+    cdef unsigned int k
+    for k in range(p_row.size):
+        estimated_rating += p_row[k] * q_row[k]
+        estimated_rating = max(min_val, min(estimated_rating, max_val))
+    return estimated_rating
+    

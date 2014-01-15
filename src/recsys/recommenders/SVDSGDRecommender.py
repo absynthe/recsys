@@ -2,7 +2,7 @@ import numpy as np
 import scipy.sparse as sparse
 import sys
 import time
-from test import cython_factorize_plain, cython_factorize_optimized, cython_factorize_optimized_biased
+from test import cython_factorize_plain, cython_factorize_optimized, cython_factorize_optimized_biased, clamped_predict
 from recsys.base import BaseRecommender
 
 class SVDSGDRecommender(BaseRecommender):
@@ -38,12 +38,14 @@ class SVDSGDRecommender(BaseRecommender):
         BaseRecommender.__init__(self, data)
         self.with_feedback = with_feedback
         self.with_bias= with_bias
+        self.regularization = regularization
+        self.factors= factors
         if self.with_bias:
             self.global_average = self.data.mean()
             self.user_bias = np.zeros(self.no_users)
             self.item_bias = np.zeros(self.no_items)
             self.p, self.q, self.user_bias, self.item_bias = cython_factorize_optimized_biased(self.data, self.global_average,
-                                                               factors, iterations, learning_rate, regularization,
+                                                               factors, iterations, learning_rate, self.regularization,
                                                                bias_learning_rate, bias_regularization)
             #self.factorize_optimized(iterations, factors, learning_rate, regularization, bias_learning_rate, bias_regularization)
         elif self.with_feedback:
@@ -66,7 +68,8 @@ class SVDSGDRecommender(BaseRecommender):
             return np.dot(self.p[user_id-1,:],self.q[:,item_id-1]) + self.global_average + self.item_bias[item_id-1] + self.user_bias[user_id-1]
         elif self.with_feedback:
             return 0
-        return np.dot(self.p[user_id-1,:],self.q[:,item_id-1])
+        return clamped_predict(self.p[user_id-1,:],self.q[:,item_id-1],1.0,5.0) #see Funk
+        #np.dot(self.p[user_id-1,:],self.q[:,item_id-1])
 
     def factorize_optimized(self,
                             steps=5000, K = 2,

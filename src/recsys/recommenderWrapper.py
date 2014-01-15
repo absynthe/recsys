@@ -3,7 +3,7 @@ import scipy as sp
 import numpy as np
 import scipy.sparse as sparse
 import time
-from recsys.data.base import load_movielens_ratings100k, generate,eval_movielens_test100k, cross_validate_movielens_test100k_iterations, cross_validate_movielens_test100k_factors,cross_validate_movielens_test100k_reg
+from recsys.data.base import load_movielens_ratings100k, generate,eval_movielens_test100k, cross_validate_movielens_test100k_iterations, cross_validate_movielens_test100k_factors,cross_validate_movielens_test100k_reg,cross_validate_movielens_test100k_bias
 from recsys.recommenders.SVDSGDRecommender import SVDSGDRecommender
 
 ratings_matrix_cache = None
@@ -16,9 +16,20 @@ USERS = 480189
 PATH = '/Users/ana/Documents/Netflix Whole Dataset/training_set/mv_'
 
 if __name__ == "__main__":
-    #cross_validate_movielens_test100k_iterations(25, 25, 1000)
-    #cross_validate_movielens_test100k_factors()
-    cross_validate_movielens_test100k_reg()
+    #cross-validation for basic SGD
+    #for lr in [0.0001,0.001,0.01]:
+    #    cross_validate_movielens_test100k_iterations(25, 25, 1000, lr)
+
+    #cross-validation for regularized SGD
+    #for lr, reg in [(0.01,0.01),(0.001,0.01),(0.01,0.001),(0.001,0.001),(0.01,0.1),(0.001,0.1)]:
+
+    #cross-validation for SVD
+
+    #cross-validation for SVD++
+
+    cross_validate_movielens_test100k_factors()
+    #cross_validate_movielens_test100k_reg()
+    #cross_validate_movielens_test100k_bias()
     #start_time = time.time()
     #data = load_movielens_ratings100k()
     #data = generate()

@@ -59,22 +59,22 @@ def eval_movielens_test100k(rec, id, load_timestamp=False):
     total = 0
     n = 0
     for user_id, item_id, rating in test_ratings:
-        estimate = np.clip(rec.predict(user_id,item_id), 0.0, 5.0)
+        estimate = rec.predict(user_id,item_id)
         #print estimate
-        total += (rating-estimate) **2
+        total += math.pow(np.float64(rating)-estimate,2)
         n+=1
     rmse = math.sqrt(total/n)
     print "Rmse for fold " + str(id) + "is: " + str(rmse)
     return rmse
 
-def cross_validate_movielens_test100k_iterations(iterations_start, iterations_step, iterations_finish):
+def cross_validate_movielens_test100k_iterations(iterations_start, iterations_step, iterations_finish,lr):
     rmse_list = []
     for i in range(iterations_start, iterations_finish, iterations_step):
         print "Computing for " + str(i) + " steps"
         average_rmse = 0
         for j in range(5):
             data = load_movielens_ratings100k(j+1, False)
-            rec = SVDSGDRecommender(data, i, 2, 0.001, 0, False, 0.001, 0.02, False)
+            rec = SVDSGDRecommender(data, i, 2, lr, 0, False, 0.001, 0.02, False)
             average_rmse += eval_movielens_test100k(rec,j+1,False)
         rmse_list.append(average_rmse/5.0)
     print rmse_list
@@ -86,19 +86,33 @@ def cross_validate_movielens_test100k_factors():
         average_rmse = 0
         for j in range(5):
             data = load_movielens_ratings100k(j+1, False)
-            rec = SVDSGDRecommender(data, 300, factor, 0.001, 0.001, True, 0.005, 0.002, False)
+            rec = SVDSGDRecommender(data, 300, factor, 0.001, 0, False, 0.005, 0.002, False)
             average_rmse += eval_movielens_test100k(rec,j+1,False)
         rmse_list.append(average_rmse / 5.0)
     print rmse_list
 
 def cross_validate_movielens_test100k_reg():
-    regularization_list = [0.1,0.2,0.01,0.02,0.03, 0.04,0.001]
+    regularization_list = [0.1,0.01,0.001, 0.0001]
+    #regularization_list = [0.001,0.002,0.003,0.004,0.005,0.006,0.007,0.008,0.009]
     rmse_list = []
     for reg in regularization_list:
         average_rmse = 0
         for j in range(5):
             data = load_movielens_ratings100k(j+1, False)
             rec = SVDSGDRecommender(data, 300, 50, 0.001, reg, False, 0.001, 0.02, False)
+            average_rmse += eval_movielens_test100k(rec,j+1,False)
+        rmse_list.append(average_rmse / 5.0)
+    print rmse_list
+
+def cross_validate_movielens_test100k_bias():
+    bias_lr_list = [0.1,0.01,0.001, 0.0001]
+    #regularization_list = [0.001,0.002,0.003,0.004,0.005,0.006,0.007,0.008,0.009]
+    rmse_list = []
+    for lr in bias_lr_list:
+        average_rmse = 0
+        for j in range(5):
+            data = load_movielens_ratings100k(j+1, False)
+            rec = SVDSGDRecommender(data, 300, 50, 0.001, 0.0001, True, lr, 0.0, False)
             average_rmse += eval_movielens_test100k(rec,j+1,False)
         rmse_list.append(average_rmse / 5.0)
     print rmse_list
