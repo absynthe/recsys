@@ -40,36 +40,36 @@ class SVDSGDRecommender(BaseRecommender):
         self.with_bias= with_bias
         self.regularization = regularization
         self.factors= factors
-        if self.with_bias:
-            self.global_average = self.data.mean()
-            self.user_bias = np.zeros(self.no_users)
-            self.item_bias = np.zeros(self.no_items)
-            self.p, self.q, self.user_bias, self.item_bias = cython_factorize_optimized_biased(self.data, self.global_average,
-                                                               factors, iterations, learning_rate, self.regularization,
-                                                               bias_learning_rate, bias_regularization)
+        #if self.with_bias:
+        #    self.global_average = self.data.mean()
+        #    self.user_bias = np.zeros(self.no_users)
+        #    self.item_bias = np.zeros(self.no_items)
+        #    self.p, self.q, self.user_bias, self.item_bias = cython_factorize_optimized_biased(self.data, self.global_average,
+                                                               #factors, iterations, learning_rate, self.regularization,
+                                                               #bias_learning_rate, bias_regularization)
             #self.factorize_optimized(iterations, factors, learning_rate, regularization, bias_learning_rate, bias_regularization)
-        elif self.with_feedback:
+        #elif self.with_feedback:
             #self.feedback_data =  sparse.lil_matrix(self.data, dtype=np.float64)
             #self.feedback_data[self.feedback_data.nonzero()]=1
             #self.feedback_data.tocsr()
-            self.y = None
+        #    self.y = None
         #self.factorize_optimized(iterations, factors, learning_rate, regularization, self.with_bias, bias_learning_rate, bias_regularization, self.with_feedback)
         #self.factorize_plain(iterations, factors, learning_rate, regularization)
         #self.p, self.q = cython_factorize_plain(self.data, factors, iterations, lr, reg)
-        else:
-            self.p, self.q = cython_factorize_optimized(self.data, factors, iterations,
-                                                        learning_rate, regularization)
+        #else:
+        self.p, self.q = cython_factorize_optimized(self.data, factors, iterations,
+                                                    learning_rate, regularization)
 
     def recommend(self,user_id, how_many):
         return
 
     def predict(self, user_id, item_id):
-        if self.with_bias:
-            return np.dot(self.p[user_id-1,:],self.q[:,item_id-1]) + self.global_average + self.item_bias[item_id-1] + self.user_bias[user_id-1]
-        elif self.with_feedback:
-            return 0
+        #if self.with_bias:
+        #    return np.dot(self.p[user_id-1,:],self.q[:,item_id-1]) + self.global_average + self.item_bias[item_id-1] + self.user_bias[user_id-1]
+        #elif self.with_feedback:
+        #    return 0
         return clamped_predict(self.p[user_id-1,:],self.q[:,item_id-1],1.0,5.0) #see Funk
-        #np.dot(self.p[user_id-1,:],self.q[:,item_id-1])
+        #return np.dot(self.p[user_id-1,:],self.q[:,item_id-1])
 
     def factorize_optimized(self,
                             steps=5000, K = 2,

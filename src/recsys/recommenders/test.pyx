@@ -78,9 +78,14 @@ def cython_factorize_optimized(data, int K,int steps=5000, np.float64_t learning
         for x in xrange(dim):
             u = rowcol[0,x]
             i = rowcol[1,x]
-            estimated_rating = 0.0
+            estimated_rating = 1.0
             for j in xrange(K):#calculate error for gradient
                 estimated_rating += p[u,j] * q[j,i]
+                #clamp
+                if estimated_rating < 1.0 :
+                    estimated_rating = 1.0
+                elif estimated_rating > 5.0:
+                    estimated_rating = 5.0
             e=learning_rate * (values[x]-estimated_rating) 
             for j in xrange(K):
                 p_temp = ( e * q[j,i] - learning_rate * regularization * p[u,j])
@@ -149,10 +154,13 @@ def cython_factorize_optimized_biased(data, np.float64_t global_average,
     
 def clamped_predict(np.ndarray[DTYPE_t,ndim=1] p_row,np.ndarray[DTYPE_t,ndim=1] q_row,np.float64_t min_val,np.float64_t max_val):
     #as recommended by Funk
-    cdef np.float64_t estimated_rating = 0.0 
+    cdef np.float64_t estimated_rating = min_val
     cdef unsigned int k
     for k in range(p_row.size):
-        estimated_rating += p_row[k] * q_row[k]
-        estimated_rating = max(min_val, min(estimated_rating, max_val))
+        estimated_rating += p_row[k] * q_row[k] 
+        if estimated_rating < min_val :
+            estimated_rating = min_val
+        elif estimated_rating > max_val:
+            estimated_rating = max_val 
     return estimated_rating
     

@@ -60,7 +60,6 @@ def eval_movielens_test100k(rec, id, load_timestamp=False):
     n = 0
     for user_id, item_id, rating in test_ratings:
         estimate = rec.predict(user_id,item_id)
-        #print estimate
         total += math.pow(np.float64(rating)-estimate,2)
         n+=1
     rmse = math.sqrt(total/n)
