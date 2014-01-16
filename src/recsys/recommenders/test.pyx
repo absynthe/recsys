@@ -3,6 +3,7 @@ import scipy as sp
 import numpy as np
 import scipy.sparse as sparse
 import time
+import math
 cimport numpy as np
 
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
@@ -57,6 +58,7 @@ def cython_factorize_optimized(data, int K,int steps=5000, np.float64_t learning
     cdef np.float64_t p_temp, estimated_rating
     cdef np.ndarray[DTYPE_t,ndim=2] q = np.empty([M,K], dtype=DTYPE)
     cdef np.float64_t e 
+    cdef np.float64_t total = 0.0
     cdef np.ndarray[long,ndim=2] rowcol = np.array(data.nonzero(),dtype=long)
     cdef np.ndarray[DTYPE_t,ndim=1] values = data.data
     cdef unsigned int step
@@ -66,10 +68,10 @@ def cython_factorize_optimized(data, int K,int steps=5000, np.float64_t learning
     cdef unsigned int dim = data.size
 
     
-    p.fill(0.1)
-    q.fill(0.1)
-    #p = np.random.rand(N, K)
-    #q = np.random.rand(M, K)
+    #p.fill(0.1)
+    #q.fill(0.1)
+    p = np.random.rand(N, K)
+    q = np.random.rand(M, K)
     q= q.T
     
     average_time = 0.0
@@ -94,7 +96,22 @@ def cython_factorize_optimized(data, int K,int steps=5000, np.float64_t learning
                 p[u,j] += p_temp
         average_time +=time.time() - start_time
     print "One step took on average" + str(average_time/steps), "seconds"
-    return p,q
+    
+    # calculate RMSE for the recommender and return it
+    for x in xrange(dim):
+        u = rowcol[0,x]
+        i = rowcol[1,x]
+        estimated_rating = 1.0
+        for j in xrange(K):#calculate error for gradient
+            estimated_rating += p[u,j] * q[j,i]
+#            clamp
+            if estimated_rating < 1.0 :
+                estimated_rating = 1.0
+            elif estimated_rating > 5.0:
+                estimated_rating = 5.0 
+        total += math.pow(values[x]-estimated_rating,2)   
+        
+    return p,q, math.sqrt(total/np.float64(dim))
     
 def cython_factorize_optimized_biased(data, np.float64_t global_average,
                                       int K,int steps=5000, 
