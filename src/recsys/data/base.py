@@ -119,8 +119,8 @@ def load_netflix_r(load_timestamp=False):
 
     base_dir = join(dirname(__file__), 'raw/netflix/training_set/mv_')
 
-    no_items = 17770
-    no_users = 2649429#480189
+    no_items = 17770 #from netflix docs
+    no_users = 480189 # ranging from 1 to 2649429, with gaps
     id_count = 0
 
     ratings_matrix = sparse.lil_matrix((no_users,no_items), dtype=np.float64)
@@ -131,7 +131,7 @@ def load_netflix_r(load_timestamp=False):
 
         for line in content[1:]:        #ignore first line
             user_id, rating, date=line.split(',')
-            ratings_matrix[int(user_id)-1,item_id-1] = rating
+            #ratings_matrix[int(user_id)-1,item_id-1] = rating
             # look for user_id in dictionary
             stored_user_id = user_id_to_id.get(user_id)
             if stored_user_id is not None:
@@ -143,7 +143,7 @@ def load_netflix_r(load_timestamp=False):
                 ratings_matrix[id_count,item_id-1] = rating
                 id_count+=1
     # convert matrix to CSR
-    return ratings_matrix.tocsr()#, user_id_to_id
+    return ratings_matrix.tocsr(), user_id_to_id
 
 def load_netflix_t():
     """ Load and return a dictionary of the movie titles in the
@@ -160,6 +160,15 @@ def load_netflix_t():
         data_t.append((int(item_id), label))
     movie_titles = dict(data_t)
     return movie_titles
+
+def simplify_netflix():
+    #read probe file, store values and write them nicely to a file "pretty-probe"
+    f = open(join(dirname(__file__), 'raw/netflix/probe.txt')
+
+    #read netflix file and dump timestamp data, as well as save user-id mapping dictionary to file and a file "pretty-netflix"
+
+
+
 
 if __name__ == "__main__":
     start_time = time.time()

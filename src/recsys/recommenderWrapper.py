@@ -20,16 +20,13 @@ def convergence_lr():
     plots = []
     for lr in [0.0001,0.001,0.01]:
         plots.append(cross_validate_movielens_test100k_iterations(25, 25, 1000, lr))
-    plt.xlabel('Number of Iterations')
-    plt.ylabel('Average RMSE')
-    plt.title('SGD Convergence - MovieLens 100K Dataset')
     print plots
 
 def error_rate_lr():
     #plot error_rate depending on learning_rate on training and validation set
     train_plots = []
     validation_plots = []
-    for lr in np.arange(0.001,0.01,0.001):
+    for lr in np.arange(0.001,0.01,0.001):#np.arange(0.001,0.01,0.001):
         print lr
         train, validation = cross_validate_movielens_test100k(300, 2, lr, 0)
         train_plots.append(train)
@@ -41,7 +38,7 @@ def error_rate_without_regularization():
     #plot error_rate depending on features for optimal learning_rate without regularization
     train_plots = []
     validation_plots = []
-    for features in range(5,30,5):
+    for features in [2,3,4] + range(5,30,5):
         train, validation = cross_validate_movielens_test100k(300, features, 0.001, 0)
         train_plots.append(train)
         validation_plots.append(validation)
@@ -52,10 +49,10 @@ def regularization_factors():
     #plot regularization effect depending on factors
     train_plots = []
     validation_plots = []
-    for reg in [0.015,0.15,0.02,0.03]:
-        for features in range(50, 150, 50):
-            t = []
-            v = []
+    for reg in [0.1]:
+        t = []
+        v = []
+        for features in (range(2,20,2) + range(20, 140, 20)):#(range(2,20,2) + range(20, 140, 20)):
             train, validation = cross_validate_movielens_test100k(300, features, 0.001, reg)
             t.append(train)
             v.append(validation)
@@ -64,12 +61,32 @@ def regularization_factors():
     print train_plots
     print validation_plots
 
+def compute_netflix():
+
+    data, mapping = load_netflix_r(j+1, False)
+    #train recommender
+    rec = SVDSGDRecommender(data, steps, factors, lr, reg, False, 0, 0, False)
+    print rec.rmse
+    # estimate on probe data
+    base_dir =
+    test_ratings = np.loadtxt(base_dir + 'u' + str(id) + '.test', delimiter='\t', usecols=(0, 1, 2), dtype=int)
+    total = 0
+    n = 0
+    for user_id, item_id, rating in test_ratings:
+        estimate = rec.predict(user_id,item_id)
+        total += math.pow(np.float64(rating)-estimate,2)
+        n+=1
+    rmse = math.sqrt(total/n)
+    print "Rmse for fold " + str(id) + "is: " + str(rmse)
+    return rmse
+    # estimate on qualifying data ? CAN'T because it was only available during the contest
+
 
 
 if __name__ == "__main__":
-    convergence_lr()
-    error_rate_lr() # found 0.006
-    #regularization_factors()
+    #convergence_lr()
+    #error_rate_lr() # found 0.006
+    regularization_factors()
     #error_rate_without_regularization()
 
     #cross-validation for regularized SGD
