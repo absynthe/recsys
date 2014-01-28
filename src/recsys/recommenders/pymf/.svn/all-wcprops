@@ -1,0 +1,185 @@
+K 25
+svn:wc:ra_dav:version-url
+V 31
+/svn/!svn/ver/65/trunk/lib/pymf
+END
+cursl.py
+K 25
+svn:wc:ra_dav:version-url
+V 40
+/svn/!svn/ver/62/trunk/lib/pymf/cursl.py
+END
+greedycur.py
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/svn/!svn/ver/62/trunk/lib/pymf/greedycur.py
+END
+sub.py
+K 25
+svn:wc:ra_dav:version-url
+V 38
+/svn/!svn/ver/62/trunk/lib/pymf/sub.py
+END
+cur.py
+K 25
+svn:wc:ra_dav:version-url
+V 38
+/svn/!svn/ver/62/trunk/lib/pymf/cur.py
+END
+chnmf.py
+K 25
+svn:wc:ra_dav:version-url
+V 40
+/svn/!svn/ver/62/trunk/lib/pymf/chnmf.py
+END
+svd.py
+K 25
+svn:wc:ra_dav:version-url
+V 38
+/svn/!svn/ver/62/trunk/lib/pymf/svd.py
+END
+sivm_gsat.py
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/svn/!svn/ver/62/trunk/lib/pymf/sivm_gsat.py
+END
+nndsvd.py
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/svn/!svn/ver/62/trunk/lib/pymf/nndsvd.py
+END
+__init__.py
+K 25
+svn:wc:ra_dav:version-url
+V 43
+/svn/!svn/ver/64/trunk/lib/pymf/__init__.py
+END
+vol.py
+K 25
+svn:wc:ra_dav:version-url
+V 38
+/svn/!svn/ver/62/trunk/lib/pymf/vol.py
+END
+sivm_sgreedy.py
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svn/!svn/ver/62/trunk/lib/pymf/sivm_sgreedy.py
+END
+rnmf.py
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/svn/!svn/ver/63/trunk/lib/pymf/rnmf.py
+END
+dist.py
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/svn/!svn/ver/62/trunk/lib/pymf/dist.py
+END
+pca.py
+K 25
+svn:wc:ra_dav:version-url
+V 38
+/svn/!svn/ver/62/trunk/lib/pymf/pca.py
+END
+cmd.py
+K 25
+svn:wc:ra_dav:version-url
+V 38
+/svn/!svn/ver/62/trunk/lib/pymf/cmd.py
+END
+snmf.py
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/svn/!svn/ver/62/trunk/lib/pymf/snmf.py
+END
+sivm_search.py
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/!svn/ver/62/trunk/lib/pymf/sivm_search.py
+END
+cmeans.py
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/svn/!svn/ver/62/trunk/lib/pymf/cmeans.py
+END
+nmfnnls.py
+K 25
+svn:wc:ra_dav:version-url
+V 42
+/svn/!svn/ver/62/trunk/lib/pymf/nmfnnls.py
+END
+sivm.py
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/svn/!svn/ver/62/trunk/lib/pymf/sivm.py
+END
+kmeans.py
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/svn/!svn/ver/62/trunk/lib/pymf/kmeans.py
+END
+greedy.py
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/svn/!svn/ver/62/trunk/lib/pymf/greedy.py
+END
+nmfals.py
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/svn/!svn/ver/62/trunk/lib/pymf/nmfals.py
+END
+nmf.py
+K 25
+svn:wc:ra_dav:version-url
+V 38
+/svn/!svn/ver/65/trunk/lib/pymf/nmf.py
+END
+aa.py
+K 25
+svn:wc:ra_dav:version-url
+V 37
+/svn/!svn/ver/62/trunk/lib/pymf/aa.py
+END
+bnmf.py
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/svn/!svn/ver/62/trunk/lib/pymf/bnmf.py
+END
+cnmf.py
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/svn/!svn/ver/62/trunk/lib/pymf/cnmf.py
+END
+gmap.py
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/svn/!svn/ver/62/trunk/lib/pymf/gmap.py
+END
+laesa.py
+K 25
+svn:wc:ra_dav:version-url
+V 40
+/svn/!svn/ver/62/trunk/lib/pymf/laesa.py
+END
+sivm_cur.py
+K 25
+svn:wc:ra_dav:version-url
+V 43
+/svn/!svn/ver/62/trunk/lib/pymf/sivm_cur.py
+END

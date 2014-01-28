@@ -12,6 +12,7 @@ import scipy.sparse as sparse
 import time
 import math
 from recsys.recommenders.SVDSGDRecommender import SVDSGDRecommender
+from recsys.recommenders.SiVMNMFRecommender import SiVMNMFRecommender
 
 def generate():
     print "Building user ratings matrix"
@@ -66,6 +67,7 @@ def eval_movielens_test100k(rec, id, load_timestamp=False):
         estimate = rec.predict(user_id,item_id)
         total += math.pow(np.float64(rating)-estimate,2)
         n+=1
+        #print estimate
     rmse = math.sqrt(total/n)
     print "Rmse for fold " + str(id) + "is: " + str(rmse)
     return rmse
@@ -92,6 +94,17 @@ def cross_validate_movielens_test100k(steps,factors,lr,reg,bias,blr,breg):
         average_test_rmse += rec.rmse
         average_validation_rmse += eval_movielens_test100k(rec,j+1,False)
     return average_test_rmse/5.0, average_validation_rmse/5.0
+
+def cross_validate_movielens_test100k_sivm(steps,factors):
+    average_test_rmse = 0.0
+    average_validation_rmse = 0.0
+    for j in [0]:#range(5):
+        data = load_movielens_ratings100k(j+1, False)
+        rec = SiVMNMFRecommender(data,steps, factors, True)
+        print rec.model.ferr[0]
+        average_test_rmse += rec.model.ferr[0]
+        average_validation_rmse += eval_movielens_test100k(rec,j+1,False)
+    print average_test_rmse/5.0, average_validation_rmse/5.0
 
 def load_movielens_titles100k():
     """ Load and return a dictionary of the movie titles in the
@@ -160,12 +173,11 @@ def load_netflix_r_pretty():
     ratings_matrix = sparse.lil_matrix((no_users,no_items), dtype=np.float64)
     bufsize = 10 * 1024 * 1024 # buffer 10 megs at a time
 
-    with open(join(dirname(__file__), 'raw/pretty-probe.txt'),'r', bufsize) as f:
+    with open(join(dirname(__file__), 'raw/pretty-netflix.txt'),'r', bufsize) as f:
         for line in f:
             user_id, item_id, rating=line.split(' ')
             ratings_matrix[int(user_id)-1, int(item_id)-1] = np.float64(rating)
-    #return ratings_matrix#.tocsr()
-    return
+    return ratings_matrix.tocsr()
 
 def load_netflix_t():
     """ Load and return a dictionary of the movie titles in the
@@ -243,6 +255,6 @@ def simplify_netflix():
 
 if __name__ == "__main__":
     start_time = time.time()
-    model = load_netflix_r_pretty()
+    data = load_netflix_r_pretty()
     print (time.time() - start_time)/60.00, "minutes"
     #simplify_netflix()
