@@ -97,7 +97,7 @@ if __name__ == "__main__" :
     #compute_netflix(data, 30)
 
 
-    for factors in [500]:#[10,20,50,100,200]:
+    for factors in [1000]:#[10,20,50,100,200]:
         cross_validate_movielens_test100k_sivm(1,factors)
     #np.set_printoptions(3, suppress = True)
     #data = generate()

@@ -70,6 +70,7 @@ def cython_factorize_optimized(data, int K,int steps=5000, np.float64_t learning
     
     #p.fill(0.1)
     #q.fill(0.1)
+    np.random.seed(1)
     p = np.random.rand(N, K)
     q = np.random.rand(M, K)
     q= q.T
@@ -150,6 +151,7 @@ def cython_factorize_optimized_biased(data,
     
     #p.fill(0.1)
     #q.fill(0.1)
+    np.random.seed(1)
     p = np.random.rand(N, K)
     q = np.random.rand(M, K)
     q= q.T
