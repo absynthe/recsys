@@ -22,8 +22,9 @@ PATH = '/Users/ana/Documents/Netflix Whole Dataset/training_set/mv_'
 def convergence_lr():
     #plot convergence for learning rate of basic SGD on the training set
     plots = []
-    for lr in [0.0001,0.001,0.01]:
-        plots.append(cross_validate_movielens_test100k_iterations(25, 25, 1000, lr, False, 0,0))
+    for lr in [0.001]:#[0.0001,0.001,0.01]:
+        print "Computing for learning rate" + str(lr)
+        plots.append(cross_validate_movielens_test100k_iterations(25, 25, 500, lr))
     print plots
 
 def error_rate_lr():
@@ -31,8 +32,8 @@ def error_rate_lr():
     train_plots = []
     validation_plots = []
     for lr in np.arange(0.001,0.01,0.001):#np.arange(0.001,0.01,0.001):
-        print lr
-        train, validation = cross_validate_movielens_test100k(300, 2, lr, 0, False, lr, 0)
+        print "Computing for learning rate" + str(lr)
+        train, validation = cross_validate_movielens_test100k(400, 2, lr, 0, False, lr, 0)
         train_plots.append(train)
         validation_plots.append(validation)
     print train_plots
@@ -43,7 +44,7 @@ def error_rate_without_regularization():
     train_plots = []
     validation_plots = []
     for features in [2,3,4] + range(5,30,5):
-        train, validation = cross_validate_movielens_test100k(300, features, 0.001, 0, False, 0, 0)
+        train, validation = cross_validate_movielens_test100k(400, features, 0.002, 0, False, 0, 0)
         train_plots.append(train)
         validation_plots.append(validation)
     print train_plots
@@ -53,11 +54,11 @@ def regularization_factors():
     #plot regularization effect depending on factors
     train_plots = []
     validation_plots = []
-    for reg in [0.1]:
+    for reg in [0.0015, 0.002, 0.003, 0.03, 0.06, 0.1]:
         t = []
         v = []
-        for features in [2,5,10]:#(range(2,20,2) + range(20, 140, 20) + [200]):#(range(2,20,2) + range(20, 140, 20)):
-            train, validation = cross_validate_movielens_test100k(300, features, 0.001, reg, True, 0.001, reg)
+        for features in (range(2,22,2) + range(20, 150, 20) + [200]):#(range(2,20,2) + range(20, 140, 20)):
+            train, validation = cross_validate_movielens_test100k(400, features, 0.002, reg, False, 0, 0)
             t.append(train)
             v.append(validation)
         train_plots.append(t)
@@ -89,7 +90,7 @@ if __name__ == "__main__" :
     #convergence_lr()
     #error_rate_lr()
     #regularization_factors()
-    #error_rate_without_regularization()
+    error_rate_without_regularization()
 
     #print "Loading data"
     #data = load_netflix_r_pretty()
@@ -97,8 +98,8 @@ if __name__ == "__main__" :
     #compute_netflix(data, 30)
 
 
-    for factors in [1000]:#[10,20,50,100,200]:
-        cross_validate_movielens_test100k_sivm(1,factors)
+    #for factors in [1000]:#[10,20,50,100,200]:
+    #    cross_validate_movielens_test100k_sivm(1,factors)
     #np.set_printoptions(3, suppress = True)
     #data = generate()
     #rec = SiVMNMFRecommender(data, 1, 3, True)

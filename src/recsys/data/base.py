@@ -74,7 +74,7 @@ def eval_movielens_test100k(rec, id, load_timestamp=False):
 
 def cross_validate_movielens_test100k_iterations(iterations_start, iterations_step, iterations_finish,lr):
     test_rmse_list = []
-    for i in range(iterations_start, iterations_finish, iterations_step):
+    for i in range(0,11,1) + range(iterations_start, iterations_finish, iterations_step):
         print "Computing for " + str(i) + " steps"
         average_rmse = 0.0
         for j in range(5):
