@@ -50,9 +50,8 @@ def cython_factorize_plain(data, int K,int steps=5000, np.float64_t learning_rat
 def cython_factorize_optimized(data, int K,int max_steps=5000, 
                                 np.float64_t learning_rate =0.001, 
                                 np.float64_t regularization = 0.02, 
-                                min_improvement = 0.001):
+                                early_stop = True, min_improvement = 0.0001):
     print "Computing factorizations..."
-    print K
     assert data.dtype == DTYPE
     #initialize factor matrices with random values
     cdef unsigned int N = data.shape[0] #no of users
@@ -77,9 +76,10 @@ def cython_factorize_optimized(data, int K,int max_steps=5000,
     q = np.random.rand(M, K)
     q= q.T
     
-    # Compute initial RMSE
-    oldRMSE = rmse(values,rowcol,p,q,dim,K)
-    print "Initial training RMSE is :" + str(oldRMSE)
+    if early_stop:
+        # Compute initial RMSE
+        oldRMSE = rmse(values,rowcol,p,q,dim,K)
+        print "Initial training RMSE is :" + str(oldRMSE)
     
     average_time = 0.0
     for step in xrange(max_steps):
@@ -102,15 +102,89 @@ def cython_factorize_optimized(data, int K,int max_steps=5000,
                 q[j,i]+= e * p[u,j]
                 p[u,j] += p_temp
         average_time +=time.time() - start_time
-        #calculate new RMSE and compare with old RMSE
-        newRMSE = rmse(values,rowcol,p,q,dim,K)
-        if oldRMSE-newRMSE < min_improvement:
-            print "Early stopping. Stable RMSE is:" + str(newRMSE) +" Number of iterations is:" + str(step+1)
-            break
-        oldRMSE = newRMSE
-    print "One step took on average" + str(average_time/max_steps) + "seconds"
+        if early_stop:
+            #calculate new RMSE and compare with old RMSE
+            newRMSE = rmse(values,rowcol,p,q,dim,K)
+            if oldRMSE-newRMSE < min_improvement:
+                print "Early stopping. Stable RMSE is:" + str(newRMSE) +" Number of iterations is:" + str(step+1)
+                break
+            oldRMSE = newRMSE
+    if max_steps > 0:
+        print "One step took on average" + str(average_time/max_steps) + "seconds"
     
-    print "Maximum number of iterations reached. RMSE is: " + str(newRMSE)   
+    if not early_stop or max_steps == 0:
+        newRMSE = rmse(values,rowcol,p,q,dim,K)
+        
+    if step >= max_steps:
+        print "Maximum number of iterations reached. RMSE is: " + str(newRMSE)   
+    return p,q, newRMSE
+    
+def cython_factorize_optimized_rev(data, int K,int max_steps=5000, 
+                                np.float64_t learning_rate =0.001, 
+                                np.float64_t regularization = 0.02, 
+                                early_stop = True, min_improvement = 0.0001):
+    print "Computing factorizations..."
+    assert data.dtype == DTYPE
+    #initialize factor matrices with random values
+    cdef unsigned int N = data.shape[0] #no of users
+    cdef unsigned int M = data.shape[1] #no of items  
+    cdef np.ndarray[DTYPE_t,ndim=2] p = np.empty([N,K], dtype=DTYPE)
+    cdef np.float64_t p_temp, estimated_rating
+    cdef np.ndarray[DTYPE_t,ndim=2] q = np.empty([M,K], dtype=DTYPE)
+    cdef np.float64_t e, oldRMSE, newRMSE 
+    cdef np.ndarray[long,ndim=2] rowcol = np.array(data.nonzero(),dtype=long)
+    cdef np.ndarray[DTYPE_t,ndim=1] values = data.data
+    cdef unsigned int step
+    cdef unsigned int i
+    cdef unsigned int u
+    cdef unsigned int j,t
+    cdef unsigned int dim = data.size
+
+    
+    #p.fill(0.1)
+    #q.fill(0.1)
+    np.random.seed(1)
+    p = np.random.rand(N, K)
+    q = np.random.rand(M, K)
+    q= q.T
+    
+    if early_stop:
+        # Compute initial RMSE
+        oldRMSE = rmse(values,rowcol,p,q,dim,K)
+        print "Initial training RMSE is :" + str(oldRMSE)
+    
+    average_time = 0.0
+    
+    for j in xrange(K):
+        for step in xrange(max_steps):
+            for x in xrange(dim):
+                u = rowcol[0,x]
+                i = rowcol[1,x]
+                estimated_rating = 1.0
+                for t in xrange(K):#calculate error for gradient
+                    estimated_rating += p[u,t] * q[t,i]
+                    #clip
+                    if estimated_rating < 1.0 :
+                        estimated_rating = 1.0
+                    elif estimated_rating > 5.0:
+                        estimated_rating = 5.0
+                e=learning_rate * (values[x]-estimated_rating) 
+                p_temp = ( e * q[j,i] - learning_rate * regularization * p[u,j])
+                q[j,i]*=(1.0-learning_rate * regularization)
+                q[j,i]+= e * p[u,j]
+                p[u,j] += p_temp
+            if early_stop:
+                #calculate new RMSE and compare with old RMSE
+                newRMSE = rmse(values,rowcol,p,q,dim,K)
+                if oldRMSE-newRMSE < min_improvement:
+                    print "Early stopping. Stable RMSE is:" + str(newRMSE) +" Number of iterations is:" + str(step+1)
+                    break
+                oldRMSE = newRMSE
+    
+        print "Max number of iterations reached. Factor trained."
+            
+    newRMSE = rmse(values,rowcol,p,q,dim,K)        
+    print "RMSE is: " + str(newRMSE)   
     return p,q, newRMSE
     
 def cython_factorize_optimized_biased(data,
