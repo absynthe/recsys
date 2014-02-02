@@ -33,7 +33,7 @@ def error_rate_lr():
     validation_plots = []
     for lr in np.arange(0.001,0.01,0.001):#np.arange(0.001,0.01,0.001):
         print "Computing for learning rate" + str(lr)
-        train, validation = cross_validate_movielens_test100k(400, 2, lr, 0, False, lr, 0)
+        train, validation = cross_validate_movielens_test100k(300, 2, lr, 0, False, lr, 0)
         train_plots.append(train)
         validation_plots.append(validation)
     print train_plots
@@ -43,8 +43,8 @@ def error_rate_without_regularization():
     #plot error_rate depending on features for optimal learning_rate without regularization
     train_plots = []
     validation_plots = []
-    for features in [2,3,4] + range(5,30,5):
-        train, validation = cross_validate_movielens_test100k(400, features, 0.002, 0, False, 0, 0)
+    for features in [2,10,20]:#[2,3,4] + range(5,30,5):
+        train, validation = cross_validate_movielens_test100k(400, features, 0.02, 0, False, 0, 0)
         train_plots.append(train)
         validation_plots.append(validation)
     print train_plots
@@ -90,13 +90,14 @@ if __name__ == "__main__" :
     #convergence_lr()
     #error_rate_lr()
     #regularization_factors()
-    error_rate_without_regularization()
+    #error_rate_without_regularization()
 
     #print "Loading data"
     #data = load_netflix_r_pretty()
     #compute_netflix(data, 120)
     #compute_netflix(data, 30)
 
+    cross_validate_movielens_test100k(400, 3, 0.002, 0.1, True, 0.002, 0.1)
 
     #for factors in [1000]:#[10,20,50,100,200]:
     #    cross_validate_movielens_test100k_sivm(1,factors)

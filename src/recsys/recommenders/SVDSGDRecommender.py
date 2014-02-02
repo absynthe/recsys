@@ -55,7 +55,7 @@ class SVDSGDRecommender(BaseRecommender):
         #self.factorize_plain(iterations, factors, learning_rate, regularization)
         #self.p, self.q = cython_factorize_plain(self.data, factors, iterations, lr, reg)
         else:
-            self.p, self.q, self.rmse = cython_factorize_optimized_rev(self.data, factors, iterations,
+            self.p, self.q, self.rmse = cython_factorize_optimized(self.data, factors, iterations,
                                                     learning_rate, regularization)
 
     def recommend(self,user_id, how_many):

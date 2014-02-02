@@ -73,6 +73,7 @@ def cython_factorize_optimized(data, int K,int max_steps=5000,
     #q.fill(0.1)
     np.random.seed(1)
     p = np.random.rand(N, K)
+    np.random.seed(2)
     q = np.random.rand(M, K)
     q= q.T
     
@@ -181,16 +182,18 @@ def cython_factorize_optimized_rev(data, int K,int max_steps=5000,
                     break
                 oldRMSE = newRMSE
     
-        print "Max number of iterations reached. Factor trained."
+        if step >= max_steps:
+                print "Max number of iterations reached. Factor trained."
             
     newRMSE = rmse(values,rowcol,p,q,dim,K)        
     print "RMSE is: " + str(newRMSE)   
     return p,q, newRMSE
     
 def cython_factorize_optimized_biased(data,
-                                      int K,int steps=5000, 
+                                      int K,int max_steps=5000, 
                                       np.float64_t learning_rate =0.001, np.float64_t regularization = 0.02,
-                                      np.float64_t bias_learning_rate =0.001, np.float64_t bias_regularization = 0.02):
+                                      np.float64_t bias_learning_rate =0.001, np.float64_t bias_regularization = 0.02,
+                                      early_stop = True, min_improvement = 0.0001):
     print "Computing factorizations with bias..."
     print K
     assert data.dtype == DTYPE
@@ -202,7 +205,9 @@ def cython_factorize_optimized_biased(data,
     
     cdef np.ndarray[DTYPE_t,ndim=2] p = np.empty([N,K], dtype=DTYPE)
     cdef np.ndarray[DTYPE_t,ndim=2] q = np.empty([M,K], dtype=DTYPE)
+    np.random.seed(3)
     cdef np.ndarray[DTYPE_t,ndim=1] user_bias = np.random.rand(N)
+    np.random.seed(4)
     cdef np.ndarray[DTYPE_t,ndim=1] item_bias = np.random.rand(M)
     cdef np.float64_t p_temp, estimated_rating
     cdef np.float64_t global_average = 0.0
@@ -226,11 +231,17 @@ def cython_factorize_optimized_biased(data,
     #q.fill(0.1)
     np.random.seed(1)
     p = np.random.rand(N, K)
+    np.random.seed(2)
     q = np.random.rand(M, K)
-    q= q.T
+    q= q.T   
+
+    if early_stop:
+        # Compute initial RMSE
+        oldRMSE = rmse_bias(values,rowcol,p,q,dim,K, global_average, user_bias, item_bias)
+        print "Initial training RMSE is :" + str(oldRMSE)
     
     average_time = 0.0
-    for step in xrange(steps):
+    for step in xrange(max_steps):
         start_time = time.time()
         for x in xrange(dim):
             u = rowcol[0,x]
@@ -257,25 +268,22 @@ def cython_factorize_optimized_biased(data,
                 q[j,i]+= e * learning_rate * p[u,j]
                 p[u,j] += p_temp
         average_time +=time.time() - start_time
-    print "One step took on average" + str(average_time/steps), "seconds"
-    # calculate RMSE for the recommender and return it
-    for x in xrange(dim):
-        u = rowcol[0,x]
-        i = rowcol[1,x]
-        estimated_rating = 1.0
-        for j in xrange(K):#calculate error for gradient
-            estimated_rating += p[u,j] * q[j,i]
-            #clamp
-            if estimated_rating < 1.0 :
-                estimated_rating = 1.0
-            elif estimated_rating > 5.0:
-                estimated_rating = 5.0 
-        estimated_rating += global_average + user_bias[u] + item_bias[i]
-        if estimated_rating < 1.0 :
-            estimated_rating = 1.0
-        elif estimated_rating > 5.0:
-            estimated_rating = 5.0   
-        total += math.pow(values[x]-estimated_rating,2)  
+        if early_stop:
+            #calculate new RMSE and compare with old RMSE
+            newRMSE = rmse_bias(values,rowcol,p,q,dim,K,global_average, user_bias, item_bias)
+            if oldRMSE-newRMSE < min_improvement:
+                print "Early stopping. Stable RMSE is:" + str(newRMSE) +" Number of iterations is:" + str(step+1)
+                break
+            oldRMSE = newRMSE
+    if max_steps > 0:
+        print "One step took on average" + str(average_time/(step+1)) + "seconds"
+    
+    if not early_stop or max_steps == 0:
+        newRMSE = rmse_bias(values,rowcol,p,q,dim,K, global_average, user_bias, item_bias)
+        
+    if step >= max_steps:
+        print "Maximum number of iterations reached. RMSE is: " + str(newRMSE)  
+        
     return p,q,user_bias,item_bias, math.sqrt(total/np.float64(dim)), global_average
     
 def clamped_predict(np.ndarray[DTYPE_t,ndim=1] p_row,np.ndarray[DTYPE_t,ndim=1] q_row,np.float64_t min_val,np.float64_t max_val):
@@ -289,6 +297,36 @@ def clamped_predict(np.ndarray[DTYPE_t,ndim=1] p_row,np.ndarray[DTYPE_t,ndim=1] 
         elif estimated_rating > max_val:
             estimated_rating = max_val    
     return estimated_rating
+    
+cdef np.float64_t rmse_bias(np.ndarray[DTYPE_t,ndim=1] values, np.ndarray[long,ndim=2] rowcol,
+                       np.ndarray[DTYPE_t,ndim=2] p, np.ndarray[DTYPE_t,ndim=2] q,
+                       unsigned int dim, int K,
+                       np.float64_t global_average,
+                       np.ndarray[DTYPE_t,ndim=1] user_bias, np.ndarray[DTYPE_t,ndim=1] item_bias):
+    # calculate RMSE for the recommender and return it
+    
+    cdef np.float64_t estimated_rating
+    cdef np.float64_t total = 0.0
+    cdef unsigned int x, u, i, j
+    
+    for x in xrange(dim):
+        u = rowcol[0,x]
+        i = rowcol[1,x]
+        estimated_rating = 1.0
+        for j in xrange(K):#calculate error for gradient
+            estimated_rating += p[u,j] * q[j,i]
+            #clip
+            if estimated_rating < 1.0 :
+                estimated_rating = 1.0
+            elif estimated_rating > 5.0:
+                estimated_rating = 5.0 
+            estimated_rating += global_average + user_bias[u] + item_bias[i]
+            if estimated_rating < 1.0 :
+                estimated_rating = 1.0
+            elif estimated_rating > 5.0:
+                estimated_rating = 5.0 
+        total += math.pow(values[x]-estimated_rating,2) 
+    return math.sqrt(total/np.float64(dim))
     
 cdef np.float64_t rmse(np.ndarray[DTYPE_t,ndim=1] values, np.ndarray[long,ndim=2] rowcol,
                        np.ndarray[DTYPE_t,ndim=2] p, np.ndarray[DTYPE_t,ndim=2] q,
