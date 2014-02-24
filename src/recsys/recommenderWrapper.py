@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import math
 from os.path import dirname
 from os.path import join
@@ -43,8 +44,8 @@ def error_rate_without_regularization():
     #plot error_rate depending on features for optimal learning_rate without regularization
     train_plots = []
     validation_plots = []
-    for features in [2,10,20]:#[2,3,4] + range(5,30,5):
-        train, validation = cross_validate_movielens_test100k(400, features, 0.02, 0, False, 0, 0)
+    for features in [2,10,20,50,100,200]:#[2,3,4] + range(5,30,5):
+        train, validation = cross_validate_movielens_test100k(300, features, 0.002, 0, False, 0, 0)
         train_plots.append(train)
         validation_plots.append(validation)
     print train_plots
@@ -54,11 +55,11 @@ def regularization_factors():
     #plot regularization effect depending on factors
     train_plots = []
     validation_plots = []
-    for reg in [0.0015, 0.002, 0.003, 0.03, 0.06, 0.1]:
+    for reg in [0.1]:#[0.0015, 0.002, 0.003, 0.03, 0.06, 0.1]:
         t = []
         v = []
-        for features in (range(2,22,2) + range(20, 150, 20) + [200]):#(range(2,20,2) + range(20, 140, 20)):
-            train, validation = cross_validate_movielens_test100k(400, features, 0.002, reg, False, 0, 0)
+        for features in [2,10,20,50,100,200]:#[10,20,50,100,200]:#(range(2,22,2) + range(20, 150, 20) + [200]):#(range(2,20,2) + range(20, 140, 20)):
+            train, validation = cross_validate_movielens_test100k(300, features, 0.002, reg, False, 0, 0)
             t.append(train)
             v.append(validation)
         train_plots.append(t)
@@ -66,10 +67,26 @@ def regularization_factors():
     print train_plots
     print validation_plots
 
-def compute_netflix(data, steps = 30):
+def bias_test():
+    #plot regularization effect depending on factors
+    train_plots = []
+    validation_plots = []
+    for reg in [0.1]:
+        t = []
+        v = []
+        for features in [2,10,20,50,100,200]:#(range(2,22,2) + range(20, 150, 20) + [200]):#(range(2,20,2) + range(20, 140, 20)):
+            train, validation = cross_validate_movielens_test100k(300, features, 0.002, reg, True, 0.002, 0.001)
+            t.append(train)
+            v.append(validation)
+        train_plots.append(t)
+        validation_plots.append(v)
+    print train_plots
+    print validation_plots
+
+def compute_netflix(data, steps = 200, factors = 10, lr = 0.001, reg = 0.011, bias = False, lrb = 0.001, regb=0.011):
     #train recommender
-    print "Training the recommender SGD with " + str(steps) +" iterations and 96 factors"
-    rec = SVDSGDRecommender(data, steps, 96, 0.001, 0.02, False, 0, 0, False)
+    print "Training the recommender SGD with " + str(steps) +" iterations and " + str(factors) + " factors"
+    rec = SVDSGDRecommender(data, steps, factors, lr, reg, bias, lrb, regb, False)
     #rec = SVDSGDRecommender(data, 30, 10, 0.005, 0.02, True, 0.005, 0.02, False)
     # estimate on probe data
     print "Estimating RMSE on probe set."
@@ -87,17 +104,34 @@ def compute_netflix(data, steps = 30):
     # estimate on qualifying data ? CAN'T because it was only available during the contest
 
 if __name__ == "__main__" :
+    print "Ready"
     #convergence_lr()
     #error_rate_lr()
     #regularization_factors()
     #error_rate_without_regularization()
+    #bias_test()
 
     #print "Loading data"
     #data = load_netflix_r_pretty()
-    #compute_netflix(data, 120)
+    #compute_netflix(data, 200,10,0.001,0.02,True,)
+    #compute_netflix(data, 40,10,0.005,0.02,True,0.005,0.02)
+#    0.005, λ = 0.02
+    #compute_netflix(data, 200,64)
+    #compute_netflix(data, 200,128)
     #compute_netflix(data, 30)
 
-    cross_validate_movielens_test100k(400, 3, 0.002, 0.1, True, 0.002, 0.1)
+#    data = generate()
+#    rec = SVDSGDRecommender(data, 5000, 3, 0.0002, 0.02, True, 0.0002, 0.02)
+#    print rec.p
+#    print rec.q
+#    print "Final model:"
+#    print np.dot(rec.p,rec.q)
+#    print "Final model:"
+#    for i in range(data.shape[0]):
+#        t = []
+#        for j in range(data.shape[1]):
+#            t.append( rec.predict(i+1,j+1))
+#        print t
 
     #for factors in [1000]:#[10,20,50,100,200]:
     #    cross_validate_movielens_test100k_sivm(1,factors)

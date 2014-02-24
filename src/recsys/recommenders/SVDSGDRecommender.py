@@ -2,7 +2,7 @@ import numpy as np
 import scipy.sparse as sparse
 import sys
 import time
-from test import cython_factorize_plain, cython_factorize_optimized, cython_factorize_optimized_biased, clamped_predict, cython_factorize_optimized_rev
+from test import cython_factorize_plain, cython_factorize_optimized, cython_factorize_optimized_bias, clamped_predict, clamped_predict_bias
 from recsys.base import BaseRecommender
 
 class SVDSGDRecommender(BaseRecommender):
@@ -41,9 +41,7 @@ class SVDSGDRecommender(BaseRecommender):
         self.regularization = regularization
         self.factors= factors
         if self.with_bias:
-            self.user_bias = None
-            self.item_bias = None
-            self.p, self.q, self.user_bias, self.item_bias, self.rmse, self.global_average = cython_factorize_optimized_biased(self.data,
+            self.p, self.q, self.user_bias, self.item_bias, self.rmse, self.global_average = cython_factorize_optimized_bias(self.data,
                                                                factors, iterations, learning_rate, self.regularization,
                                                                bias_learning_rate, bias_regularization)
         #elif self.with_feedback:
@@ -63,12 +61,7 @@ class SVDSGDRecommender(BaseRecommender):
 
     def predict(self, user_id, item_id):
         if self.with_bias:
-            prediction = clamped_predict(self.p[user_id-1,:],self.q[:,item_id-1],1.0,5.0) + self.global_average + self.item_bias[item_id-1] + self.user_bias[user_id-1]
-            if prediction > 5.0:
-                return 5.0
-            elif prediction < 1.0:
-                return 1.0
-            return prediction
+            return clamped_predict_bias(self.p[user_id-1,:],self.q[:,item_id-1],1.0,5.0, self.global_average, self.user_bias[user_id-1], self.item_bias[item_id-1])
         #elif self.with_feedback:
         #    return 0
         return clamped_predict(self.p[user_id-1,:],self.q[:,item_id-1],1.0,5.0) #see Funk

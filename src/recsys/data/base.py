@@ -61,7 +61,7 @@ def load_movielens_ratings100k(id=None, load_timestamp=False):
 def eval_movielens_test100k(rec, id, load_timestamp=False):
     base_dir = join(dirname(__file__), 'raw/ml-100k/')
     test_ratings = np.loadtxt(base_dir + 'u' + str(id) + '.test', delimiter='\t', usecols=(0, 1, 2), dtype=int)
-    total = 0
+    total = 0.0
     n = 0
     for user_id, item_id, rating in test_ratings:
         estimate = rec.predict(user_id,item_id)
