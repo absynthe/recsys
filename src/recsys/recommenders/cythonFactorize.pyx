@@ -347,7 +347,7 @@ def svd_plus_plus(data, int K,int max_steps=5000,
                 #normalize
                 py_sum[j] /= denominator
                 #add p to it
-                py_sum[j] += self.p[u,j]
+                py_sum[j] += p[u,j]
 
                 #calculate error for gradient
                 #e = (self.data[u,i]-np.dot(py_sum,self.q.T[:,i]))  
@@ -532,7 +532,7 @@ cdef np.float64_t rmse_feedback(data, np.ndarray[DTYPE_t,ndim=1] values, np.ndar
             #normalize
             py_sum[j] /= denominator
             #add p to it
-            py_sum[j] += self.p[u,j]
+            py_sum[j] += p[u,j]
 
             #calculate error for gradient
             #e = (self.data[u,i]-np.dot(py_sum,self.q.T[:,i]))  

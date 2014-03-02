@@ -83,6 +83,22 @@ def bias_test():
     print train_plots
     print validation_plots
 
+def feedback_test():
+    #plot regularization effect depending on factors
+    train_plots = []
+    validation_plots = []
+    for reg in [0.1]:
+        t = []
+        v = []
+        for features in [2,10,20,50,100,200]:#(range(2,22,2) + range(20, 150, 20) + [200]):#(range(2,20,2) + range(20, 140, 20)):
+            train, validation = cross_validate_movielens_test100k(300, features, 0.002, reg, True, 0.002, 0.001, True)
+            t.append(train)
+            v.append(validation)
+        train_plots.append(t)
+        validation_plots.append(v)
+    print train_plots
+    print validation_plots
+
 def compute_netflix(data, steps = 200, factors = 10, lr = 0.001, reg = 0.011, bias = False, lrb = 0.001, regb=0.011):
     #train recommender
     print "Training the recommender SGD with " + str(steps) +" iterations and " + str(factors) + " factors"
