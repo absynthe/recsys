@@ -9,7 +9,7 @@ setup(
     cmdclass={'build_ext': build_ext},
     ext_modules = [
             Extension("test",
-            ["test.pyx"],
+            ["cythonFactorize.pyx"],
             include_dirs=[np.get_include()])
                   ]
   #name = 'SGD Factorization',

@@ -2,7 +2,8 @@ import numpy as np
 import scipy.sparse as sparse
 import sys
 import time
-from test import cython_factorize_plain, cython_factorize_optimized, cython_factorize_optimized_bias, clamped_predict, clamped_predict_bias
+from cythonFactorize import factorize_optimized, svd, svd_plus_plus, \
+clamped_predict, clamped_predict_bias, clamped_predict_feedback
 from recsys.base import BaseRecommender
 
 class SVDSGDRecommender(BaseRecommender):
@@ -40,37 +41,41 @@ class SVDSGDRecommender(BaseRecommender):
         self.with_bias= with_bias
         self.regularization = regularization
         self.factors= factors
+
         if self.with_bias:
-            self.p, self.q, self.user_bias, self.item_bias, self.rmse, self.global_average = cython_factorize_optimized_bias(self.data,
+            self.p, self.q, self.user_bias, self.item_bias, self.rmse, self.global_average = svd(self.data,
                                                                factors, iterations, learning_rate, self.regularization,
                                                                bias_learning_rate, bias_regularization)
-        #elif self.with_feedback:
-            #self.feedback_data =  sparse.lil_matrix(self.data, dtype=np.float64)
-            #self.feedback_data[self.feedback_data.nonzero()]=1
-            #self.feedback_data.tocsr()
-        #    self.y = None
-        #self.factorize_optimized(iterations, factors, learning_rate, regularization, self.with_bias, bias_learning_rate, bias_regularization, self.with_feedback)
-        #self.factorize_plain(iterations, factors, learning_rate, regularization)
-        #self.p, self.q = cython_factorize_plain(self.data, factors, iterations, lr, reg)
+        elif self.with_feedback:
+            elf.p, self.q, self.y, self.user_bias, self.item_bias, self.rmse, self.global_average = svd_plus_plus(self.data,
+                                                               factors, iterations, learning_rate, self.regularization,
+                                                               bias_learning_rate, bias_regularization)
         else:
-            self.p, self.q, self.rmse = cython_factorize_optimized(self.data, factors, iterations,
-                                                    learning_rate, regularization)
+            self.p, self.q, self.rmse = factorize_optimized(self.data, factors, iterations,
+                                                    learning_rate, self.regularization)
 
     def recommend(self,user_id, how_many):
         return
 
     def predict(self, user_id, item_id):
         if self.with_bias:
-            return clamped_predict_bias(self.p[user_id-1,:],self.q[:,item_id-1],1.0,5.0, self.global_average, self.user_bias[user_id-1], self.item_bias[item_id-1])
-        #elif self.with_feedback:
-        #    return 0
-        return clamped_predict(self.p[user_id-1,:],self.q[:,item_id-1],1.0,5.0) #see Funk
+            return clamped_predict_bias(self.p[user_id-1,:],self.q[:,item_id-1],\
+                1.0,5.0, \
+                self.global_average, self.user_bias[user_id-1], self.item_bias[item_id-1])
+        elif self.with_feedback:
+            return clamped_predict_feedback(self.p[user_id-1,:],self.q[:,item_id-1],\
+                self.y, data[user_id-1].nonzero()[1], \
+                1.0,5.0, \
+                self.global_average, self.user_bias[user_id-1], self.item_bias[item_id-1])
+        else:
+            return clamped_predict(self.p[user_id-1,:],self.q[:,item_id-1],1.0,5.0) 
         #return np.dot(self.p[user_id-1,:],self.q[:,item_id-1])
 
     def factorize_optimized(self,
-                            steps=5000, K = 2,
-                            learning_rate =0.001, regularization = 0.02,
-                            bias_learning_rate = 0.001, bias_regularization=0.02):
+        steps=5000, K = 2,
+        learning_rate =0.001, regularization = 0.02,
+        bias_learning_rate = 0.001, bias_regularization=0.02):
+
         """
         Factorizes the input matrix so as to minimize the regularized squared error,
         using the Stochastic Gradient Descent method. With bias and feedback, represents SVD ++.
@@ -96,7 +101,7 @@ class SVDSGDRecommender(BaseRecommender):
             for u, i in rowcols.T:
                 if self.with_feedback:
                     # calculate y.SumOfRows(items_rated_by_user[u]);
-                    py_sum = np.empty(K)
+                    py_sum = np.zeros(K)
                     item_indices = self.data[u].nonzero()[1]
                     denominator = math.sqrt(item_indices.size)
                     for it in item_indices:
@@ -112,7 +117,6 @@ class SVDSGDRecommender(BaseRecommender):
                     e= (self.data[u,i]-np.dot(self.p[u,:],self.q.T[:,i]))
                 #take bias into account
                 if self.with_bias:
-                     print "I R in"
                      e -= ( self.global_average + self.user_bias[u] + self.item_bias[i] )
                      self.item_bias[i] += bias_learning_rate * (e - bias_regularization * self.item_bias[i])
                      self.user_bias[u] += bias_learning_rate * (e - bias_regularization * self.user_bias[u])
@@ -137,8 +141,9 @@ class SVDSGDRecommender(BaseRecommender):
         self.q = self.q.T
 
     def factorize_plain(self,
-                        steps=5000, K = 2,
-                        learning_rate =0.001, regularization = 0.02):
+        steps=5000, K = 2,
+        learning_rate =0.001, regularization = 0.02):
+
         """
         Factorizes the input matrix so as to minimize the regularized squared error,
         using the Stochastic Gradient Descent method. Unoptimal version.
