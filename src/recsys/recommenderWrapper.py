@@ -90,7 +90,7 @@ def feedback_test():
     for reg in [0.1]:
         t = []
         v = []
-        for features in [2,10,20,50,100,200]:#(range(2,22,2) + range(20, 150, 20) + [200]):#(range(2,20,2) + range(20, 140, 20)):
+        for features in [200]:#[2,10,20,50,100,200]:#(range(2,22,2) + range(20, 150, 20) + [200]):#(range(2,20,2) + range(20, 140, 20)):
             train, validation = cross_validate_movielens_test100k(300, features, 0.002, reg, True, 0.002, 0.001, True)
             t.append(train)
             v.append(validation)

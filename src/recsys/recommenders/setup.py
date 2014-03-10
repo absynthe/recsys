@@ -10,7 +10,7 @@ import numpy as np
 setup(
     cmdclass={'build_ext': build_ext},
     ext_modules = [
-            Extension("test",
+            Extension("cythonFactorize",
             ["cythonFactorize.pyx"],
             include_dirs=[np.get_include()])
                   ]

@@ -77,19 +77,19 @@ def cross_validate_movielens_test100k_iterations(iterations_start, iterations_st
     for i in range(0,11,1) + range(iterations_start, iterations_finish, iterations_step):
         print "Computing for " + str(i) + " steps"
         average_rmse = 0.0
-        for j in range(5):
+        for j in xrange(5):
             data = load_movielens_ratings100k(j+1, False)
             rec = SVDSGDRecommender(data, i, 2, lr, 0, False, 0, 0, False)
             average_rmse += rec.rmse
         test_rmse_list.append(average_rmse/5.0)
     return test_rmse_list
 
-def cross_validate_movielens_test100k(steps,factors,lr,reg,bias,blr,breg):
+def cross_validate_movielens_test100k(steps,factors,lr,reg,bias,blr,breg,feedback):
     average_test_rmse = 0.0
     average_validation_rmse = 0.0
-    for j in range(5):
+    for j in xrange(5):
         data = load_movielens_ratings100k(j+1, False)
-        rec = SVDSGDRecommender(data, steps, factors, lr, reg, bias, blr, breg, False)
+        rec = SVDSGDRecommender(data, steps, factors, lr, reg, bias, blr, breg, feedback)
         print rec.rmse
         average_test_rmse += rec.rmse
         average_validation_rmse += eval_movielens_test100k(rec,j+1,False)

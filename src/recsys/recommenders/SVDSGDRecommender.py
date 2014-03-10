@@ -42,14 +42,23 @@ class SVDSGDRecommender(BaseRecommender):
         self.regularization = regularization
         self.factors= factors
 
-        if self.with_bias:
+        if self.with_feedback:
+            rowcol = np.array(self.data.nonzero(),dtype=long)
+            values = np.array(self.data.data,dtype=np.float64)
+            item_indices = np.array(data.indices, dtype = long)     
+            user_pointers = np.array(data.indptr, dtype = long)
+
+            self.p, self.q, self.y, self.user_bias, self.item_bias, self.rmse, self.global_average = svd_plus_plus(
+                                                               self.no_users, self.no_items, self.no_ratings,
+                                                               rowcol, values, item_indices, user_pointers,
+                                                               factors, iterations, 
+                                                               learning_rate, self.regularization,
+                                                               bias_learning_rate, bias_regularization)
+        elif self.with_bias:
             self.p, self.q, self.user_bias, self.item_bias, self.rmse, self.global_average = svd(self.data,
                                                                factors, iterations, learning_rate, self.regularization,
                                                                bias_learning_rate, bias_regularization)
-        elif self.with_feedback:
-            elf.p, self.q, self.y, self.user_bias, self.item_bias, self.rmse, self.global_average = svd_plus_plus(self.data,
-                                                               factors, iterations, learning_rate, self.regularization,
-                                                               bias_learning_rate, bias_regularization)
+
         else:
             self.p, self.q, self.rmse = factorize_optimized(self.data, factors, iterations,
                                                     learning_rate, self.regularization)

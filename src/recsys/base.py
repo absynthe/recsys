@@ -28,6 +28,7 @@ class BaseRecommender:
         self.q=None
         self.no_users = self.data.shape[0]
         self.no_items =self.data.shape[1]
+        self.no_ratings = data.size
 
     def recommend(self, user_id, how_many):
         '''
