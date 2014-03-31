@@ -74,8 +74,8 @@ def bias_test():
     for reg in [0.1]:
         t = []
         v = []
-        for features in [2,10,20,50,100,200]:#(range(2,22,2) + range(20, 150, 20) + [200]):#(range(2,20,2) + range(20, 140, 20)):
-            train, validation = cross_validate_movielens_test100k(300, features, 0.002, reg, True, 0.002, 0.001)
+        for features in [200]:#[2,10,20,50,100,200]:#(range(2,22,2) + range(20, 150, 20) + [200]):#(range(2,20,2) + range(20, 140, 20)):
+            train, validation = cross_validate_movielens_test100k(300, features, 0.002, reg, True, 0.002, 0.001, False)
             t.append(train)
             v.append(validation)
         train_plots.append(t)
@@ -91,7 +91,7 @@ def feedback_test():
         t = []
         v = []
         for features in [200]:#[2,10,20,50,100,200]:#(range(2,22,2) + range(20, 150, 20) + [200]):#(range(2,20,2) + range(20, 140, 20)):
-            train, validation = cross_validate_movielens_test100k(300, features, 0.002, reg, True, 0.002, 0.001, True)
+            train, validation = cross_validate_movielens_test100k(10, features, 0.002, reg, True, 0.002, 0.001, True)
             t.append(train)
             v.append(validation)
         train_plots.append(t)
@@ -125,7 +125,7 @@ if __name__ == "__main__" :
     #error_rate_lr()
     #regularization_factors()
     #error_rate_without_regularization()
-    #bias_test()
+    #feedback_test()
 
     #print "Loading data"
     #data = load_netflix_r_pretty()
@@ -149,8 +149,8 @@ if __name__ == "__main__" :
 #            t.append( rec.predict(i+1,j+1))
 #        print t
 
-    #for factors in [1000]:#[10,20,50,100,200]:
-    #    cross_validate_movielens_test100k_sivm(1,factors)
+    for factors in [200]:#[10,20,50,100,200]:
+        cross_validate_movielens_test100k_sivm(1,factors)
     #np.set_printoptions(3, suppress = True)
     #data = generate()
     #rec = SiVMNMFRecommender(data, 1, 3, True)

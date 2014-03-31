@@ -104,7 +104,7 @@ def cross_validate_movielens_test100k_sivm(steps,factors):
         print rec.model.ferr[0]
         average_test_rmse += rec.model.ferr[0]
         average_validation_rmse += eval_movielens_test100k(rec,j+1,False)
-    print average_test_rmse/5.0, average_validation_rmse/5.0
+    print average_test_rmse, average_validation_rmse
 
 def load_movielens_titles100k():
     """ Load and return a dictionary of the movie titles in the

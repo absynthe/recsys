@@ -21,10 +21,13 @@ class SiVMNMFRecommender(BaseRecommender):
 
         self.clipping = clipping
         self.model = SIVM(self.data, num_bases=factors)
-        start_time = 0.0
-        self.model.factorize(show_progress=True, compute_w=True, compute_h=True,
-                  compute_err=True, niter=iterations)
-        print "Factorization took" + str(time.time() - start_time) + "seconds"
+        total_time = 0.0
+        for i in range(10):
+            start_time = time.time()
+            self.model.factorize(show_progress=True, compute_w=True, compute_h=True,
+                      compute_err=True, niter=iterations)
+            total_time +=time.time() - start_time
+        print "Factorization took " + str(total_time/10.0) + "seconds"
         self.w = self.model.W.todense()
         self.h = self.model.H
 

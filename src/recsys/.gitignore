@@ -6,6 +6,8 @@ __pycache__/
 *.so
 *.c
 *.o
+recommenders/build/
+*.html
 
 # Distribution / packaging
 .Python

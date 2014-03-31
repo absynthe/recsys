@@ -54,11 +54,21 @@ class SVDSGDRecommender(BaseRecommender):
                                                                factors, iterations, 
                                                                learning_rate, self.regularization,
                                                                bias_learning_rate, bias_regularization)
+            
         elif self.with_bias:
+            '''
+            self.user_bias = np.random.rand(self.no_users)
+            self.item_bias = np.random.rand(self.no_items)
+            self.global_average = self.data.sum()/self.data.size
+            print "Mean is : " , self.global_average
+            self.factorize_optimized(iterations, factors, learning_rate, self.regularization, bias_learning_rate, bias_regularization)
+            '''
+            
+            
             self.p, self.q, self.user_bias, self.item_bias, self.rmse, self.global_average = svd(self.data,
                                                                factors, iterations, learning_rate, self.regularization,
                                                                bias_learning_rate, bias_regularization)
-
+            
         else:
             self.p, self.q, self.rmse = factorize_optimized(self.data, factors, iterations,
                                                     learning_rate, self.regularization)
@@ -67,6 +77,7 @@ class SVDSGDRecommender(BaseRecommender):
         return
 
     def predict(self, user_id, item_id):
+        
         if self.with_bias:
             return clamped_predict_bias(self.p[user_id-1,:],self.q[:,item_id-1],\
                 1.0,5.0, \
@@ -78,6 +89,7 @@ class SVDSGDRecommender(BaseRecommender):
                 self.global_average, self.user_bias[user_id-1], self.item_bias[item_id-1])
         else:
             return clamped_predict(self.p[user_id-1,:],self.q[:,item_id-1],1.0,5.0) 
+        
         #return np.dot(self.p[user_id-1,:],self.q[:,item_id-1])
 
     def factorize_optimized(self,
@@ -90,7 +102,7 @@ class SVDSGDRecommender(BaseRecommender):
         using the Stochastic Gradient Descent method. With bias and feedback, represents SVD ++.
         Optimized version.
         """
-        print "Computing factorizations for " + str(K) + "factors"
+        print "Computing factorizations for " + str(K) + " factors"
 
         #initialize factor matrices with random values or fixed values
         #self.p = np.random.rand(N, K)
