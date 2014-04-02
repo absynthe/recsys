@@ -87,11 +87,12 @@ def feedback_test():
     #plot regularization effect depending on factors
     train_plots = []
     validation_plots = []
-    for reg in [0.1]:
+    for reg in [0.011]:
         t = []
         v = []
-        for features in [200]:#[2,10,20,50,100,200]:#(range(2,22,2) + range(20, 150, 20) + [200]):#(range(2,20,2) + range(20, 140, 20)):
-            train, validation = cross_validate_movielens_test100k(10, features, 0.002, reg, True, 0.002, 0.001, True)
+        for features in [10]:#[2,10,20,50,100,200]:#(range(2,22,2) + range(20, 150, 20) + [200]):#(range(2,20,2) + range(20, 140, 20)):
+            train, validation = cross_validate_movielens_test100k(10, features, 0.002, reg, True, 0.001, 0.0011, True)
+            #cythonFactorize.svd_plus_plus(\ no_users, no_items, no_ratings,\ rowcol, values, item_indices, user_pointers,\ 10, 10, 0.002, 0.011, 0.001, 0.0011, True)
             t.append(train)
             v.append(validation)
         train_plots.append(t)
@@ -125,7 +126,10 @@ if __name__ == "__main__" :
     #error_rate_lr()
     #regularization_factors()
     #error_rate_without_regularization()
-    #feedback_test()
+    feedback_test()
+
+    #data = generate()
+    #rec = SVDSGDRecommender(data, 10, 10, 0.002, 0.1, True, 0.002, 0.001, True)
 
     #print "Loading data"
     #data = load_netflix_r_pretty()
@@ -136,8 +140,8 @@ if __name__ == "__main__" :
     #compute_netflix(data, 200,128)
     #compute_netflix(data, 30)
 
-#    data = generate()
-#    rec = SVDSGDRecommender(data, 5000, 3, 0.0002, 0.02, True, 0.0002, 0.02)
+    #data = generate()
+    #rec = SVDSGDRecommender(data, 5000, 3, 0.0002, 0.02, True, 0.0002, 0.02)
 #    print rec.p
 #    print rec.q
 #    print "Final model:"
@@ -149,8 +153,10 @@ if __name__ == "__main__" :
 #            t.append( rec.predict(i+1,j+1))
 #        print t
 
-    for factors in [200]:#[10,20,50,100,200]:
-        cross_validate_movielens_test100k_sivm(1,factors)
+    #for factors in [200]:#[10,20,50,100,200]:
+    #    cross_validate_movielens_test100k_sivm(1,factors)
+
+
     #np.set_printoptions(3, suppress = True)
     #data = generate()
     #rec = SiVMNMFRecommender(data, 1, 3, True)
